@@ -17,8 +17,11 @@ type Director struct {
 	//窗口 renderer
 	renderer *sdl.Renderer
 
-	//場景鏈 僅最外層場景被渲染
+	//場景鏈 僅最外層場景被渲染 響應事件
 	scenes *list.List
+
+	//焦點 元素
+	focus Object
 }
 
 //唯一的 導演單例
