@@ -151,12 +151,14 @@ func DestoryWindow() {
 }
 
 //渲染遊戲 運行邏輯
-func Run() {
+func Run(r, g, b, a uint8) {
 	director := getDirector()
 	fps := director.fps
 	renderer := director.renderer
+
 	//主邏輯循環
 	last := time.Now()
+	renderer.SetDrawColor(r, g, b, a)
 	for {
 		//獲取 擴展 事件
 		for evt := director.pollEvent(); evt != nil; evt = director.pollEvent() {
