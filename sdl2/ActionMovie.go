@@ -1,7 +1,6 @@
 package sdl2
 
 import (
-	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
 	"time"
 )
@@ -20,6 +19,9 @@ type ActionMovie struct {
 	//當前播放 幀
 	pos float64
 
+	//花費時間
+	duration time.Duration
+
 	//速度
 	speed   float64
 	speedOk bool
@@ -30,14 +32,17 @@ type ActionMovie struct {
 }
 
 //n 預計紋理數量 duration 花費時間
-func NewActionMovie(n int) *ActionMovie {
+func NewActionMovie(n int, duration time.Duration) *ActionMovie {
 	return &ActionMovie{textures: make([]*sdl.Texture, n),
-		pos: 0,
+		pos:      0,
+		duration: duration,
 	}
 }
 
 //執行動作
 func (a *ActionMovie) DoAction(node Object, duration time.Duration) {
+	a.calculateSpeed()
+
 	size := len(a.textures)
 
 	//ok
@@ -88,6 +93,7 @@ func (a *ActionMovie) Clone() Action {
 	action.pos = 0
 	action.texture = nil
 	action.textureOk = false
+	action.speedOk = false
 	return &action
 }
 
@@ -99,13 +105,18 @@ func (a *ActionMovie) PushFrame(texture *sdl.Texture) {
 }
 
 //計算播放速度
-func (a *ActionMovie) calculateSpeed(duration time.Duration) {
+func (a *ActionMovie) calculateSpeed() {
+	if a.speedOk {
+		return
+	}
+
 	size := len(a.textures)
 	if size == 0 {
 		return
 	}
-	a.speed = float64(size) / float64(duration/time.Millisecond)
-	fmt.Println(a.speed)
+	a.speed = float64(size) / float64(a.duration/time.Millisecond)
+
+	a.speedOk = true
 }
 
 //設置 action 完成 通知
