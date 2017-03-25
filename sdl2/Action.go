@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+//動作執行完一個週期後的 回調
+type ActionCallBack func(node Object, a Action)
+
 //施加到 演員的 動作定義
 type Action interface {
 	//執行動作

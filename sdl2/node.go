@@ -15,6 +15,12 @@ type Object interface {
 	//繪製自己
 	Draw(renderer *sdl.Renderer, duration time.Duration)
 
+	//繪製自己
+	OnDraw(renderer *sdl.Renderer, duration time.Duration)
+
+	//執行動作
+	OnAction(duration time.Duration)
+
 	//處理 事件 返回 true 停止事件傳遞
 	OnEvent(evt sdl.Event) bool
 
@@ -75,9 +81,14 @@ type Object interface {
 	SetParent(parent Object)
 
 	//綁定一個 動作 多次 bind 的 動作 同時被執行
-	BindAction(a Action, yes bool /*動作完成時 自動移除*/)
+	BindAction(a Action)
 	//移除一個 動作
 	RemoveAction(a Action)
+
+	//設置紋理
+	SetTexture(texture *sdl.Texture)
+	//返回當前 紋理
+	GetTexture() *sdl.Texture
 }
 
 type RendererFlip sdl.RendererFlip
@@ -196,6 +207,27 @@ func (n *Node) GetMinZ() int {
 
 //繪製自己
 func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
+	//執行動作
+	n.OnAction(duration)
+	for i := 0; i < len(n.childs); i++ {
+		n.childs[i].OnAction(duration)
+	}
+
+	if !n.IsVisible() {
+		//不可見 直接返回
+		return
+	}
+
+	//繪製自己
+	n.OnDraw(renderer, duration)
+	//繪製子元素
+	for i := 0; i < len(n.childs); i++ {
+		n.childs[i].Draw(renderer, duration)
+	}
+}
+
+//繪製自己
+func (n *Node) OnDraw(renderer *sdl.Renderer, duration time.Duration) {
 	//繪製自己
 	texture := n.Texture
 	if texture != nil {
@@ -212,12 +244,14 @@ func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 			n.Flip,
 		)
 	}
+}
+func (n *Node) OnAction(duration time.Duration) {
+	if n.actions == nil {
+		return
+	}
 
-	//繪製子元素
-	for i := 0; i < len(n.childs); i++ {
-		if n.childs[i].IsVisible() {
-			n.childs[i].Draw(renderer, duration)
-		}
+	for a, _ := range n.actions {
+		a.DoAction(n, duration)
 	}
 }
 
@@ -357,7 +391,7 @@ func (n *Node) SetParent(obj Object) {
 }
 
 //綁定一個 動作 多次 bind 的 動作 同時被執行
-func (n *Node) BindAction(a Action, yes bool /*動作完成時 自動移除*/) {
+func (n *Node) BindAction(a Action) {
 	if n.actions == nil {
 		n.actions = make(map[Action]bool)
 	}
@@ -369,4 +403,17 @@ func (n *Node) RemoveAction(a Action) {
 	if n.actions != nil {
 		delete(n.actions, a)
 	}
+	if a.Auto() {
+		a.Destory()
+	}
+}
+
+//設置紋理
+func (n *Node) SetTexture(texture *sdl.Texture) {
+	n.Texture = texture
+}
+
+//返回當前 紋理
+func (n *Node) GetTexture() *sdl.Texture {
+	return n.Texture
 }
