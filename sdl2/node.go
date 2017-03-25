@@ -24,11 +24,11 @@ type Object interface {
 	SetVisible(yes bool)
 
 	//返回 坐標 (相對父節點)
-	GetPos() (int, int)
+	GetPos() (float64, float64)
 	//坐標轉 屏幕坐標
-	ToScreenPos(x, y int) (int, int)
+	ToScreenPos(x, y float64) (float64, float64)
 	//設置 坐標
-	SetPos(x int, y int)
+	SetPos(x float64, y float64)
 	//返回 大小
 	GetSize() (int, int)
 	//設置 大小
@@ -38,6 +38,10 @@ type Object interface {
 	GetZ() int
 	//返回 z 坐標
 	SetZ(z int)
+	//返回 子節點中的 最大 z 坐標 必須要sort後才會返回 正確值
+	GetMaxZ() int
+	//返回 子節點中的 最小 z 坐標 必須要sort後才會返回 正確值
+	GetMinZ() int
 
 	//銷毀 元素
 	Destroy()
@@ -69,6 +73,11 @@ type Object interface {
 	GetParent() Object
 	//設置 父節點
 	SetParent(parent Object)
+
+	//綁定一個 動作 多次 bind 的 動作 同時被執行
+	BindAction(a Action, yes bool /*動作完成時 自動移除*/)
+	//移除一個 動作
+	RemoveAction(a Action)
 }
 
 type RendererFlip sdl.RendererFlip
@@ -85,12 +94,13 @@ type Node struct {
 	Texture *sdl.Texture
 
 	//坐標 大小
-	X, Y, Width, Height int
+	X, Y          float64
+	Width, Height int
 	//z坐標 值越小 越先繪製 越後響應事件
 	Z int
 
 	//錨點 [0,100]
-	AnchorX, AnchorY int
+	AnchorX, AnchorY float64
 
 	//旋轉角度
 	Angle float64
@@ -108,6 +118,9 @@ type Node struct {
 
 	//是否不可見
 	hide bool
+
+	//動作集合
+	actions map[Action]bool
 }
 
 //是否可見
@@ -121,12 +134,12 @@ func (n *Node) SetVisible(ok bool) {
 }
 
 //返回 坐標
-func (n *Node) GetPos() (int, int) {
+func (n *Node) GetPos() (float64, float64) {
 	return n.X, n.Y
 }
 
 //坐標轉 屏幕坐標
-func (n *Node) ToScreenPos(x, y int) (int, int) {
+func (n *Node) ToScreenPos(x, y float64) (float64, float64) {
 	for node := n.GetParent(); node != nil; node = node.GetParent() {
 		tx, ty := node.GetPos()
 		x += tx
@@ -137,7 +150,7 @@ func (n *Node) ToScreenPos(x, y int) (int, int) {
 }
 
 //設置 坐標
-func (n *Node) SetPos(x int, y int) {
+func (n *Node) SetPos(x float64, y float64) {
 	n.X = x
 	n.Y = y
 }
@@ -163,6 +176,24 @@ func (n *Node) SetZ(z int) {
 	n.Z = z
 }
 
+//返回 子節點中的 最大 z 坐標 必須要sort後才會返回 正確值
+func (n *Node) GetMaxZ() int {
+	size := len(n.childs)
+	if size == 0 {
+		return 0
+	}
+	return n.childs[size-1].GetZ()
+}
+
+//返回 子節點中的 最小 z 坐標 必須要sort後才會返回 正確值
+func (n *Node) GetMinZ() int {
+	size := len(n.childs)
+	if size == 0 {
+		return 0
+	}
+	return n.childs[0].GetZ()
+}
+
 //繪製自己
 func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 	//繪製自己
@@ -170,8 +201,8 @@ func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 	if texture != nil {
 		width := int32(n.Width)
 		height := int32(n.Height)
-		x := int(n.X - n.Width*n.AnchorX/100)
-		y := int(n.Y - n.Height*n.AnchorY/100)
+		x := n.X - float64(n.Width)*n.AnchorX
+		y := n.Y - float64(n.Height)*n.AnchorY
 		x, y = n.ToScreenPos(x, y)
 		renderer.CopyEx(texture,
 			nil,
@@ -206,6 +237,13 @@ func (n *Node) Destroy() {
 	for i := 0; i < len(n.childs); i++ {
 		n.childs[i].Destroy()
 	}
+	n.childs = nil
+	for a, _ := range n.actions {
+		if a.Auto() {
+			a.Destory()
+		}
+	}
+	n.actions = nil
 }
 
 //初始化 子元素 slice
@@ -316,4 +354,19 @@ func (n *Node) GetParent() Object {
 //設置 父節點
 func (n *Node) SetParent(obj Object) {
 	n.parent = obj
+}
+
+//綁定一個 動作 多次 bind 的 動作 同時被執行
+func (n *Node) BindAction(a Action, yes bool /*動作完成時 自動移除*/) {
+	if n.actions == nil {
+		n.actions = make(map[Action]bool)
+	}
+	n.actions[a] = true
+}
+
+//移除一個 動作
+func (n *Node) RemoveAction(a Action) {
+	if n.actions != nil {
+		delete(n.actions, a)
+	}
 }
