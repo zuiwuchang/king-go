@@ -8,17 +8,17 @@ import (
 type ActionMoveTo struct {
 	//目的坐標
 	x, y float64
-	//花費時間
-	duration time.Duration
+
 	//速度
 	speedX, speedY float64
 
 	//動作結束回調
 	callback ActionCallBack
+	params   interface{}
 }
 
 //x,y 當前坐標 targetX, targetY 目標坐標 duration 花費時間
-func NewActionMoveTo(x, y, targetX, targetY float64, duration time.Duration, callback ActionCallBack) *ActionMoveTo {
+func NewActionMoveTo(x, y, targetX, targetY float64, duration time.Duration) *ActionMoveTo {
 	x -= targetX
 	y -= targetY
 	if x < 0 {
@@ -29,12 +29,10 @@ func NewActionMoveTo(x, y, targetX, targetY float64, duration time.Duration, cal
 	}
 
 	n := float64(duration / time.Millisecond)
-	return &ActionMoveTo{targetX,
-		targetY,
-		duration,
-		x / n,
-		y / n,
-		callback,
+	return &ActionMoveTo{x: targetX,
+		y:      targetY,
+		speedX: x / n,
+		speedY: y / n,
 	}
 }
 
@@ -48,7 +46,7 @@ func (a *ActionMoveTo) DoAction(node Object, duration time.Duration) {
 		node.RemoveAction(a)
 
 		if a.callback != nil {
-			a.callback(node, a)
+			a.callback(node, a, a.params)
 		}
 		return
 	}
@@ -92,4 +90,15 @@ func (a *ActionMoveTo) Auto() bool {
 func (a *ActionMoveTo) Clone() Action {
 	action := *a
 	return &action
+}
+
+//設置 action 完成 通知
+func (a *ActionMoveTo) SetCallBack(callback ActionCallBack, params interface{}) {
+	a.callback = callback
+	a.params = params
+}
+
+//返回 action 完成 通知
+func (a *ActionMoveTo) GetCallBack() (ActionCallBack, interface{}) {
+	return a.callback, a.params
 }

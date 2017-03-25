@@ -25,13 +25,13 @@ type ActionMovie struct {
 
 	//動作結束回調
 	callback ActionCallBack
+	params   interface{}
 }
 
 //n 預計紋理數量 duration 花費時間
-func NewActionMovie(n int, callback ActionCallBack) *ActionMovie {
+func NewActionMovie(n int) *ActionMovie {
 	return &ActionMovie{textures: make([]*sdl.Texture, n),
-		pos:      0,
-		callback: callback,
+		pos: 0,
 	}
 }
 
@@ -52,7 +52,7 @@ func (a *ActionMovie) DoAction(node Object, duration time.Duration) {
 		}
 		//call
 		if a.callback != nil {
-			a.callback(node, a)
+			a.callback(node, a, a.params)
 		}
 		a.pos = 0
 	}
@@ -105,4 +105,15 @@ func (a *ActionMovie) CalculateSpeed(duration time.Duration) {
 	}
 	a.speed = float64(size) / float64(duration/time.Millisecond)
 	fmt.Println(a.speed)
+}
+
+//設置 action 完成 通知
+func (a *ActionMovie) SetCallBack(callback ActionCallBack, params interface{}) {
+	a.callback = callback
+	a.params = params
+}
+
+//返回 action 完成 通知
+func (a *ActionMovie) GetCallBack() (ActionCallBack, interface{}) {
+	return a.callback, a.params
 }
