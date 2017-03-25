@@ -9,6 +9,11 @@ type ActionMoveTo struct {
 	//目的坐標
 	x, y float64
 
+	//花費時間
+	duration time.Duration
+	//是否得到速度
+	speedOk bool
+
 	//速度
 	speedX, speedY float64
 
@@ -18,9 +23,22 @@ type ActionMoveTo struct {
 }
 
 //x,y 當前坐標 targetX, targetY 目標坐標 duration 花費時間
-func NewActionMoveTo(x, y, targetX, targetY float64, duration time.Duration) *ActionMoveTo {
-	x -= targetX
-	y -= targetY
+func NewActionMoveTo(x, y float64, duration time.Duration) *ActionMoveTo {
+	return &ActionMoveTo{x: x,
+		y:        y,
+		duration: duration,
+	}
+}
+
+//計算速度
+func (a *ActionMoveTo) calculateSpeed(node Object) {
+	if a.speedOk {
+		return
+	}
+	x, y := node.GetPos()
+
+	x -= a.x
+	y -= a.y
 	if x < 0 {
 		x = -x
 	}
@@ -28,16 +46,17 @@ func NewActionMoveTo(x, y, targetX, targetY float64, duration time.Duration) *Ac
 		y = -y
 	}
 
-	n := float64(duration / time.Millisecond)
-	return &ActionMoveTo{x: targetX,
-		y:      targetY,
-		speedX: x / n,
-		speedY: y / n,
-	}
+	n := float64(a.duration / time.Millisecond)
+
+	a.speedX = x / n
+	a.speedY = y / n
+	a.speedOk = true
 }
 
 //執行動作
 func (a *ActionMoveTo) DoAction(node Object, duration time.Duration) {
+	a.calculateSpeed(node)
+
 	n := float64(duration / time.Millisecond)
 	nx := n * a.speedX
 	ny := n * a.speedY
@@ -89,6 +108,7 @@ func (a *ActionMoveTo) Auto() bool {
 //返回一個動作副本
 func (a *ActionMoveTo) Clone() Action {
 	action := *a
+	action.speedOk = false
 	return &action
 }
 

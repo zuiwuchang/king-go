@@ -21,7 +21,8 @@ type ActionMovie struct {
 	pos float64
 
 	//速度
-	speed float64
+	speed   float64
+	speedOk bool
 
 	//動作結束回調
 	callback ActionCallBack
@@ -98,7 +99,7 @@ func (a *ActionMovie) PushFrame(texture *sdl.Texture) {
 }
 
 //計算播放速度
-func (a *ActionMovie) CalculateSpeed(duration time.Duration) {
+func (a *ActionMovie) calculateSpeed(duration time.Duration) {
 	size := len(a.textures)
 	if size == 0 {
 		return
