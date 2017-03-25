@@ -158,7 +158,7 @@ func Run(r, g, b, a uint8) {
 
 	//主邏輯循環
 	last := time.Now()
-	renderer.SetDrawColor(r, g, b, a)
+
 	for {
 		//獲取 擴展 事件
 		for evt := director.pollEvent(); evt != nil; evt = director.pollEvent() {
@@ -189,6 +189,7 @@ func Run(r, g, b, a uint8) {
 		last = now
 
 		/***  繪製遊戲  ***/
+		renderer.SetDrawColor(r, g, b, a)
 		//清空背景
 		renderer.Clear()
 

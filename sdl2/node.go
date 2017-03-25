@@ -158,8 +158,7 @@ func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 		width := int32(n.Width)
 		height := int32(n.Height)
 		x := int32(n.X - n.Width*n.AnchorX/100)
-		y := int32(n.Height*n.AnchorY/100 - n.Y)
-
+		y := int32(n.Y - n.Height*n.AnchorY/100)
 		renderer.CopyEx(texture,
 			nil,
 			&sdl.Rect{X: x, Y: y, W: width, H: height},
