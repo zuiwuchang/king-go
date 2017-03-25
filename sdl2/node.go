@@ -23,8 +23,10 @@ type Object interface {
 	//設置是否可見
 	SetVisible(yes bool)
 
-	//返回 坐標
+	//返回 坐標 (相對父節點)
 	GetPos() (int, int)
+	//坐標轉 屏幕坐標
+	ToScreenPos(x, y int) (int, int)
 	//設置 坐標
 	SetPos(x int, y int)
 	//返回 大小
@@ -123,6 +125,17 @@ func (n *Node) GetPos() (int, int) {
 	return n.X, n.Y
 }
 
+//坐標轉 屏幕坐標
+func (n *Node) ToScreenPos(x, y int) (int, int) {
+	for node := n.GetParent(); node != nil; node = node.GetParent() {
+		tx, ty := node.GetPos()
+		x += tx
+		y += ty
+	}
+
+	return x, y
+}
+
 //設置 坐標
 func (n *Node) SetPos(x int, y int) {
 	n.X = x
@@ -157,11 +170,12 @@ func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 	if texture != nil {
 		width := int32(n.Width)
 		height := int32(n.Height)
-		x := int32(n.X - n.Width*n.AnchorX/100)
-		y := int32(n.Y - n.Height*n.AnchorY/100)
+		x := int(n.X - n.Width*n.AnchorX/100)
+		y := int(n.Y - n.Height*n.AnchorY/100)
+		x, y = n.ToScreenPos(x, y)
 		renderer.CopyEx(texture,
 			nil,
-			&sdl.Rect{X: x, Y: y, W: width, H: height},
+			&sdl.Rect{X: int32(x), Y: int32(y), W: width, H: height},
 			n.Angle,
 			nil,
 			n.Flip,
