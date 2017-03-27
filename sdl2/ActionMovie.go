@@ -7,8 +7,8 @@ import (
 
 //播放動畫
 type ActionMovie struct {
-	//是否循環播放
-	loop bool
+	ActionBase
+
 	//動畫幀
 	textures []*sdl.Texture
 	//原紋理
@@ -25,10 +25,20 @@ type ActionMovie struct {
 	//速度
 	speed   float64
 	speedOk bool
+}
 
-	//動作結束回調
-	callback ActionCallBack
-	params   interface{}
+func (a *ActionMovie) SetAutoDestory(yes bool) Action {
+	a.auto = yes
+	return a
+}
+func (a *ActionMovie) SetCallBack(callback ActionCallBack, params interface{}) Action {
+	a.callback = callback
+	a.params = params
+	return a
+}
+func (a *ActionMovie) SetLoop(yes bool) Action {
+	a.loop = yes
+	return a
 }
 
 //n 預計紋理數量 duration 花費時間
@@ -83,12 +93,7 @@ func (a *ActionMovie) DoAction(node Object, duration time.Duration) {
 
 //釋放 動作
 func (a *ActionMovie) Destory() {
-
-}
-
-//是否自動 釋放
-func (a *ActionMovie) Auto() bool {
-	return false
+	*a = ActionMovie{}
 }
 
 //返回一個動作副本
@@ -121,27 +126,4 @@ func (a *ActionMovie) calculateSpeed() {
 	a.speed = float64(size) / float64(a.duration/time.Millisecond)
 
 	a.speedOk = true
-}
-
-//設置 action 完成 通知
-func (a *ActionMovie) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-
-//返回 action 完成 通知
-func (a *ActionMovie) GetCallBack() (ActionCallBack, interface{}) {
-	return a.callback, a.params
-}
-
-//返回 是否 循環執行
-func (a *ActionMovie) GetLoop() bool {
-	return a.loop
-}
-
-//設置 是否 循環執行
-func (a *ActionMovie) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
 }

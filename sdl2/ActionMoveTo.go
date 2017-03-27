@@ -6,6 +6,8 @@ import (
 
 //勻速 移動到 指定 坐標
 type ActionMoveTo struct {
+	ActionBase
+
 	//目的坐標
 	x, y float64
 
@@ -16,13 +18,20 @@ type ActionMoveTo struct {
 
 	//速度
 	speedX, speedY float64
+}
 
-	//動作結束回調
-	callback ActionCallBack
-	params   interface{}
-
-	//是否循環執行
-	loop bool
+func (a *ActionMoveTo) SetAutoDestory(yes bool) Action {
+	a.auto = yes
+	return a
+}
+func (a *ActionMoveTo) SetCallBack(callback ActionCallBack, params interface{}) Action {
+	a.callback = callback
+	a.params = params
+	return a
+}
+func (a *ActionMoveTo) SetLoop(yes bool) Action {
+	a.loop = yes
+	return a
 }
 
 //x,y 當前坐標 targetX, targetY 目標坐標 duration 花費時間
@@ -106,37 +115,9 @@ func (a *ActionMoveTo) Destory() {
 	*a = ActionMoveTo{}
 }
 
-//是否自動 釋放
-func (a *ActionMoveTo) Auto() bool {
-	return false
-}
-
 //返回一個動作副本
 func (a *ActionMoveTo) Clone() Action {
 	action := *a
 	action.speedOk = false
 	return &action
-}
-
-//設置 action 完成 通知
-func (a *ActionMoveTo) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-
-//返回 action 完成 通知
-func (a *ActionMoveTo) GetCallBack() (ActionCallBack, interface{}) {
-	return a.callback, a.params
-}
-
-//返回 是否 循環執行
-func (a *ActionMoveTo) GetLoop() bool {
-	return a.loop
-}
-
-//設置 是否 循環執行
-func (a *ActionMoveTo) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
 }

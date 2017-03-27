@@ -3,8 +3,11 @@ package sdl2
 
 import (
 	"container/list"
+	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
 	img "github.com/veandco/go-sdl2/sdl_image"
+	ttf "github.com/veandco/go-sdl2/sdl_ttf"
+	"log"
 	"sync"
 	"time"
 )
@@ -17,6 +20,8 @@ type Director struct {
 	window *sdl.Window
 	//窗口 renderer
 	renderer *sdl.Renderer
+	//預設字體
+	font *ttf.Font
 
 	//場景鏈 僅最外層場景被渲染 響應事件
 	scenes *list.List
@@ -92,6 +97,22 @@ func InitEngine() error {
 	}
 
 	img.Init(img.INIT_JPG | img.INIT_PNG | img.INIT_TIF | img.INIT_WEBP)
+	if e := initTTF(); e != nil {
+		return e
+	}
+
+	return nil
+}
+func initTTF() error {
+	if e := ttf.Init(); e != nil {
+		return e
+	}
+
+	font, e := ttf.OpenFont("NotoSansCJKtc-Regular.otf", 16)
+	if e != nil {
+		return e
+	}
+	getDirector().font = font
 	return nil
 }
 func getDirector() *Director {
@@ -100,12 +121,15 @@ func getDirector() *Director {
 
 //銷毀 引擎資源
 func DestoryEngine() {
-	for element := g_director.scenes.Back(); element != nil; element = element.Prev() {
+	director := getDirector()
+
+	for element := director.scenes.Back(); element != nil; element = element.Prev() {
 		scene := element.Value.(Object)
 		scene.Destroy()
 	}
 
 	DestoryWindow()
+	director.font.Close()
 	g_director = nil
 }
 
@@ -150,15 +174,47 @@ func DestoryWindow() {
 	}
 }
 
+//顯示 測試 數據
+func drawShow(fps int) {
+	director := getDirector()
+	font := director.font
+	surface, e := font.RenderUTF8_Blended(
+		fmt.Sprint("fps : ", fps),
+		sdl.Color{R: 128, G: 128, B: 128},
+	)
+	if e != nil {
+		log.Println(e)
+		return
+	}
+	w, _ := director.window.GetSize()
+	rect := sdl.Rect{X: int32(w) - 7 - surface.W, Y: 7, W: surface.W, H: surface.H}
+
+	renderer := director.renderer
+	texture, e := renderer.CreateTextureFromSurface(surface)
+	if e != nil {
+		log.Println(e)
+		return
+	}
+	defer texture.Destroy()
+
+	renderer.Copy(
+		texture,
+		nil,
+		&rect,
+	)
+}
+
 //渲染遊戲 運行邏輯
-func Run(r, g, b, a uint8) {
+func Run(r, g, b, a uint8, show bool /*是否顯示調試信息*/) {
 	director := getDirector()
 	fps := director.fps
 	renderer := director.renderer
 
 	//主邏輯循環
 	last := time.Now()
-
+	wait := time.Second / time.Duration(fps)
+	nowFPS := 0
+	lastFPS := last
 	for {
 		//獲取 擴展 事件
 		for evt := director.pollEvent(); evt != nil; evt = director.pollEvent() {
@@ -181,7 +237,7 @@ func Run(r, g, b, a uint8) {
 
 		//保證 fps 省略掉多餘繪製
 		now := time.Now()
-		if now.Before(last.Add(time.Second / time.Duration(fps))) {
+		if now.Before(last.Add(wait)) {
 			continue
 		}
 		duration := now.Sub(last)
@@ -198,8 +254,17 @@ func Run(r, g, b, a uint8) {
 			scene.Draw(renderer, duration)
 		}
 
+		if show {
+			nowFPS++
+			drawShow(fps)
+			if now.After(lastFPS.Add(time.Second * 1)) {
+				lastFPS = now
+				nowFPS = 0
+			}
+		}
 		//將 renderer 更新到屏幕
 		renderer.Present()
+
 	}
 END:
 }

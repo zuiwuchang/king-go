@@ -16,7 +16,8 @@ type Action interface {
 	Destory()
 	//是否自動 釋放
 	//返回 true 移除action時 自動調用 a.Destory()
-	Auto() bool
+	GetAutoDestory() bool
+	SetAutoDestory(yes bool) Action
 	//返回一個動作副本
 	Clone() Action
 
@@ -29,4 +30,35 @@ type Action interface {
 	GetLoop() bool
 	//設置 是否 循環執行
 	SetLoop(yes bool) Action
+}
+type ActionBase struct {
+	//是否 重複 action
+	loop bool
+
+	//是否自動 destory
+	auto bool
+
+	//動作結束回調
+	callback ActionCallBack
+	params   interface{}
+}
+
+//釋放 動作
+func (a *ActionBase) Destory() {
+}
+
+//是否自動 釋放
+//返回 true 移除action時 自動調用 a.Destory()
+func (a *ActionBase) GetAutoDestory() bool {
+	return a.auto
+}
+
+//返回 action 完成 通知
+func (a *ActionBase) GetCallBack() (ActionCallBack, interface{}) {
+	return a.callback, a.params
+}
+
+//返回 是否 循環執行
+func (a *ActionBase) GetLoop() bool {
+	return a.loop
 }

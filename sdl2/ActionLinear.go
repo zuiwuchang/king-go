@@ -15,16 +15,26 @@ type actionLinearNode struct {
 //將多個 action 線性執行
 //對於 ActionLinear 中的 Action GetLoop() 的返回值 會被忽略直接以 false 處理
 type ActionLinear struct {
-	//動作結束回調
-	callback ActionCallBack
-	params   interface{}
+	ActionBase
 
 	//線性動作 集合
 	actions []actionLinearNode
 	//當前動作
 	pos int
+}
 
-	loop bool
+func (a *ActionLinear) SetAutoDestory(yes bool) Action {
+	a.auto = yes
+	return a
+}
+func (a *ActionLinear) SetCallBack(callback ActionCallBack, params interface{}) Action {
+	a.callback = callback
+	a.params = params
+	return a
+}
+func (a *ActionLinear) SetLoop(yes bool) Action {
+	a.loop = yes
+	return a
 }
 
 //進入下個 action
@@ -94,42 +104,25 @@ func NewActionLinear(as ...Action) *ActionLinear {
 	return rs
 }
 
-//設置 action 完成 通知
-func (a *ActionLinear) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-
-//返回 action 完成 通知
-func (a *ActionLinear) GetCallBack() (ActionCallBack, interface{}) {
-	return a.callback, a.params
-}
-
 //釋放 動作
 func (a *ActionLinear) Destory() {
-	*a = ActionLinear{}
-}
+	for _, node := range a.actions {
+		ac := node.action
+		if ac.GetAutoDestory() {
+			ac.Destory()
+		}
+	}
 
-//是否自動 釋放
-func (a *ActionLinear) Auto() bool {
-	return false
+	*a = ActionLinear{}
 }
 
 //返回一個動作副本
 func (a *ActionLinear) Clone() Action {
-	action := *a
-	action.pos = 0
-	return &action
-}
-
-//返回 是否 循環執行
-func (a *ActionLinear) GetLoop() bool {
-	return a.loop
-}
-
-//設置 是否 循環執行
-func (a *ActionLinear) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
+	size := len(a.actions)
+	as := make([]Action, size, size)
+	for i, node := range a.actions {
+		as[i] = node.action.Clone()
+		as[i].SetCallBack(node.callback, node.params)
+	}
+	return NewActionLinear(as...)
 }

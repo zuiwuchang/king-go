@@ -273,7 +273,7 @@ func (n *Node) Destroy() {
 	}
 	n.childs = nil
 	for a, _ := range n.actions {
-		if a.Auto() {
+		if a.GetAutoDestory() {
 			a.Destory()
 		}
 	}
@@ -403,7 +403,7 @@ func (n *Node) RemoveAction(a Action) {
 	if n.actions != nil {
 		delete(n.actions, a)
 	}
-	if a.Auto() {
+	if a.GetAutoDestory() {
 		a.Destory()
 	}
 }
