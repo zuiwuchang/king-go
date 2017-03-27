@@ -89,6 +89,13 @@ type Object interface {
 	SetTexture(texture *sdl.Texture)
 	//返回當前 紋理
 	GetTexture() *sdl.Texture
+
+	//返回 錨點
+	GetAnchor() (anchorX, anchorY float64)
+	//設置 錨點
+	SetAnchor(anchorX, anchorY float64)
+	SetAnchorX(anchor float64)
+	SetAnchorY(anchor float64)
 }
 
 type RendererFlip sdl.RendererFlip
@@ -153,6 +160,12 @@ func (n *Node) GetPos() (float64, float64) {
 func (n *Node) ToScreenPos(x, y float64) (float64, float64) {
 	for node := n.GetParent(); node != nil; node = node.GetParent() {
 		tx, ty := node.GetPos()
+
+		w, h := node.GetSize()
+		anchorX, anchorY := node.GetAnchor()
+		tx = tx - float64(w)*anchorX
+		ty = ty - float64(h)*anchorY
+
 		x += tx
 		y += ty
 	}
@@ -416,4 +429,21 @@ func (n *Node) SetTexture(texture *sdl.Texture) {
 //返回當前 紋理
 func (n *Node) GetTexture() *sdl.Texture {
 	return n.Texture
+}
+
+//返回 錨點
+func (n *Node) GetAnchor() (anchorX, anchorY float64) {
+	return n.AnchorX, n.AnchorY
+}
+
+//設置 錨點
+func (n *Node) SetAnchor(anchorX, anchorY float64) {
+	n.AnchorX = anchorX
+	n.AnchorY = anchorY
+}
+func (n *Node) SetAnchorX(anchor float64) {
+	n.AnchorX = anchor
+}
+func (n *Node) SetAnchorY(anchor float64) {
+	n.AnchorY = anchor
 }
