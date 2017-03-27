@@ -294,3 +294,11 @@ func SetFocus(obj Object) {
 	}
 
 }
+
+//返回 遊戲 窗口
+func GetWindow() *sdl.Window {
+	if g_director == nil {
+		return nil
+	}
+	return g_director.window
+}
