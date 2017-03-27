@@ -33,7 +33,7 @@ type ActionMovie struct {
 
 //n 預計紋理數量 duration 花費時間
 func NewActionMovie(n int, duration time.Duration) *ActionMovie {
-	return &ActionMovie{textures: make([]*sdl.Texture, n),
+	return &ActionMovie{textures: make([]*sdl.Texture, 0, n),
 		pos:      0,
 		duration: duration,
 	}
