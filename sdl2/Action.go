@@ -15,12 +15,18 @@ type Action interface {
 	//釋放 動作
 	Destory()
 	//是否自動 釋放
+	//返回 true 移除action時 自動調用 a.Destory()
 	Auto() bool
 	//返回一個動作副本
 	Clone() Action
 
 	//設置 action 完成 通知
-	SetCallBack(callback ActionCallBack, params interface{})
+	SetCallBack(callback ActionCallBack, params interface{}) Action
 	//返回 action 完成 通知
 	GetCallBack() (ActionCallBack, interface{})
+
+	//返回 是否 循環執行
+	GetLoop() bool
+	//設置 是否 循環執行
+	SetLoop(yes bool) Action
 }

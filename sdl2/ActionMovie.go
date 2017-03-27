@@ -8,7 +8,7 @@ import (
 //播放動畫
 type ActionMovie struct {
 	//是否循環播放
-	Loop bool
+	loop bool
 	//動畫幀
 	textures []*sdl.Texture
 	//原紋理
@@ -50,17 +50,21 @@ func (a *ActionMovie) DoAction(node Object, duration time.Duration) {
 
 	if pos >= size {
 		//不循環 移除 動作
-		if !a.Loop {
+		if !a.loop {
 			node.RemoveAction(a)
 			//還原紋理
 			node.SetTexture(a.texture)
-			return
 		}
 		//call
 		if a.callback != nil {
 			a.callback(node, a, a.params)
 		}
-		a.pos = 0
+
+		if a.loop {
+			a.pos = 0
+		} else {
+			return
+		}
 	}
 
 	//沒保存 原紋理
@@ -120,12 +124,24 @@ func (a *ActionMovie) calculateSpeed() {
 }
 
 //設置 action 完成 通知
-func (a *ActionMovie) SetCallBack(callback ActionCallBack, params interface{}) {
+func (a *ActionMovie) SetCallBack(callback ActionCallBack, params interface{}) Action {
 	a.callback = callback
 	a.params = params
+	return a
 }
 
 //返回 action 完成 通知
 func (a *ActionMovie) GetCallBack() (ActionCallBack, interface{}) {
 	return a.callback, a.params
+}
+
+//返回 是否 循環執行
+func (a *ActionMovie) GetLoop() bool {
+	return a.loop
+}
+
+//設置 是否 循環執行
+func (a *ActionMovie) SetLoop(yes bool) Action {
+	a.loop = yes
+	return a
 }
