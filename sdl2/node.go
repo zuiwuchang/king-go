@@ -15,9 +15,6 @@ type Object interface {
 	//繪製自己
 	Draw(renderer *sdl.Renderer, duration time.Duration)
 
-	//繪製自己
-	OnDraw(renderer *sdl.Renderer, duration time.Duration)
-
 	//執行動作
 	OnAction(duration time.Duration)
 
@@ -232,26 +229,29 @@ func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 	}
 
 	//繪製自己
-	n.OnDraw(renderer, duration)
+	n.draw(renderer, duration)
 	//繪製子元素
 	for i := 0; i < len(n.childs); i++ {
 		n.childs[i].Draw(renderer, duration)
 	}
 }
 
+//返回繪製坐標
+func (n *Node) GetDrawPos() (float64, float64) {
+	x := n.X - float64(n.Width)*n.AnchorX
+	y := n.Y - float64(n.Height)*n.AnchorY
+	return n.ToScreenPos(x, y)
+}
+
 //繪製自己
-func (n *Node) OnDraw(renderer *sdl.Renderer, duration time.Duration) {
+func (n *Node) draw(renderer *sdl.Renderer, duration time.Duration) {
 	//繪製自己
 	texture := n.Texture
 	if texture != nil {
-		width := int32(n.Width)
-		height := int32(n.Height)
-		x := n.X - float64(n.Width)*n.AnchorX
-		y := n.Y - float64(n.Height)*n.AnchorY
-		x, y = n.ToScreenPos(x, y)
+		x, y := n.GetDrawPos()
 		renderer.CopyEx(texture,
 			nil,
-			&sdl.Rect{X: int32(x), Y: int32(y), W: width, H: height},
+			&sdl.Rect{X: int32(x), Y: int32(y), W: int32(n.Width), H: int32(n.Height)},
 			n.Angle,
 			nil,
 			n.Flip,

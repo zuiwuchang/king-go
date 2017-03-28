@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+const (
+	FONT_DEFAULT_FILE = "NotoSansCJKtc-Regular.otf"
+	FONT_DEFAULT_SIZE = 16
+)
+
 //導演 保存了遊戲 環境 運行狀況
 type Director struct {
 	//最大fps
@@ -108,7 +113,7 @@ func initTTF() error {
 		return e
 	}
 
-	font, e := ttf.OpenFont("NotoSansCJKtc-Regular.otf", 16)
+	font, e := ttf.OpenFont(FONT_DEFAULT_FILE, FONT_DEFAULT_SIZE)
 	if e != nil {
 		return e
 	}

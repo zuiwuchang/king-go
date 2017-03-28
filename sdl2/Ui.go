@@ -11,6 +11,13 @@ const (
 	UI_EVT_MBTN_DCLICK = "k-mbtn_dclick"
 )
 
+const (
+	R_MASK = 0x000000ff
+	G_MASK = 0x0000ff00
+	B_MASK = 0x00ff0000
+	A_MASK = 0xff000000
+)
+
 //ui事件 回調
 type UiCallBack func(ui UiObject, info interface{})
 
