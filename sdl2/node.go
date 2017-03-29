@@ -30,6 +30,9 @@ type Object interface {
 	GetPos() (float64, float64)
 	//坐標轉 屏幕坐標
 	ToScreenPos(x, y float64) (float64, float64)
+	//坐標轉 相對坐標
+	ToPos(x, y float64) (float64, float64)
+
 	//設置 坐標
 	SetPos(x float64, y float64)
 	//返回 大小
@@ -151,6 +154,12 @@ func (n *Node) SetVisible(ok bool) {
 //返回 坐標
 func (n *Node) GetPos() (float64, float64) {
 	return n.X, n.Y
+}
+
+//坐標轉 相對坐標
+func (n *Node) ToPos(x, y float64) (float64, float64) {
+	dx, dy := n.GetDrawPos()
+	return x - dx, y - dy
 }
 
 //坐標轉 屏幕坐標
