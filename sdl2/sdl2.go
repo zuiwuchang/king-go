@@ -77,9 +77,10 @@ func PopScene() Object {
 }
 
 //替換當前 場景
-func Replace(scene Object) {
-	PopScene()
+func Replace(scene Object) Object {
+	old := PopScene()
 	PushScene(scene)
+	return old
 }
 
 //返回當前 場景
