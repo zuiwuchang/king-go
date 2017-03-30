@@ -132,6 +132,13 @@ func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 				u.val.SelectRight()
 			} else if t.Keysym.Sym == sdl.K_BACKSPACE {
 				u.val.Backspace()
+			} else if t.Keysym.Sym == sdl.K_a {
+				state := sdl.GetKeyboardState()
+				if state[sdl.SCANCODE_LCTRL] == 1 ||
+					state[sdl.SCANCODE_RCTRL] == 1 {
+					//select all
+					u.SelectAll()
+				}
 			} else if t.Keysym.Sym == sdl.K_c {
 				state := sdl.GetKeyboardState()
 				if state[sdl.SCANCODE_LCTRL] == 1 ||
@@ -241,4 +248,29 @@ func (u *UiLineEdit) ReplaceRune(arrs []rune) error {
 		g_log.Println(e)
 	}
 	return e
+}
+
+//設置 允許輸入的最大字符數
+func (u *UiLineEdit) GetMax() int {
+	return u.val.GetMax()
+}
+
+//返回 允許輸入的最大字符數
+func (u *UiLineEdit) SetMax(max int) {
+	u.val.SetMax(max)
+}
+
+//光標 選擇
+func (u *UiLineEdit) Select(begin, end int) {
+	u.val.Select(begin, end)
+}
+
+//光標 全選
+func (u *UiLineEdit) SelectAll() {
+	str := u.val.GetString()
+	if str == "" {
+		return
+	}
+
+	u.val.Select(0, len([]rune(str)))
 }

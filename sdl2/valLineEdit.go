@@ -36,8 +36,17 @@ type valLineEdit struct {
 
 	//是否 選擇文本中
 	isSelect bool
+
+	//最大允許輸入字符數
+	max int
 }
 
+func (v *valLineEdit) GetMax() int {
+	return v.max
+}
+func (v *valLineEdit) SetMax(max int) {
+	v.max = max
+}
 func (v *valLineEdit) GetChartRGB() (r uint8, g uint8, b uint8) {
 	return v.r, v.g, v.b
 }
@@ -242,6 +251,12 @@ func (v *valLineEdit) GetString() string {
 
 //設置 字符串值
 func (v *valLineEdit) SetString(str string, width int) {
+	if v.max > 0 {
+		arrs := []rune(str)
+		if len(arrs) > v.max {
+			str = string(arrs[:v.max])
+		}
+	}
 
 	if v.texture != nil {
 		v.texture.Destroy()
@@ -450,11 +465,6 @@ func (v *valLineEdit) ReplaceRune(arrs []rune, width int) error {
 		return nil
 	}
 
-	old := []rune(v.text)
-	oSize := len(old)
-	size := oSize + nSize
-	nRune := make([]rune, size, size)
-
 	var begin, end int
 	if v.chartBegin < v.chartEnd {
 		begin = v.chartBegin
@@ -464,6 +474,15 @@ func (v *valLineEdit) ReplaceRune(arrs []rune, width int) error {
 		end = v.chartBegin
 	}
 	pos := begin + nSize
+
+	old := []rune(v.text)
+	oSize := len(old)
+	size := pos + (oSize - end)
+	if v.max > 0 && size > v.max {
+		return errors.New("text more max length")
+	}
+	nRune := make([]rune, size, size)
+
 	copy(nRune, old[:begin])
 	copy(nRune[begin:], arrs)
 	copy(nRune[pos:], old[end:])
@@ -568,4 +587,34 @@ func (v *valLineEdit) GetSelectStr() (str string) {
 	arrs := []rune(v.text)
 	str = string(arrs[begin:end])
 	return
+}
+
+//光標 選擇
+func (v *valLineEdit) Select(begin, end int) {
+	if v.text == "" {
+		return
+	}
+
+	size := len([]rune(v.text))
+	if begin > size {
+		begin = size
+	}
+	if end > size {
+		end = size
+	}
+
+	if begin > end {
+		begin, end = end, begin
+	}
+
+	v.chartBegin = begin
+	v.chartBeginPixel = v.getPos(begin)
+
+	if begin == end {
+		v.chartEnd = v.chartBegin
+		v.chartEndPixel = v.chartBeginPixel
+		return
+	}
+	v.chartEnd = end
+	v.chartEndPixel = v.getPos(end)
 }
