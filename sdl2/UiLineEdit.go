@@ -141,7 +141,8 @@ func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 					//select all
 					u.SelectAll()
 				}
-			} else if t.Keysym.Sym == sdl.K_c {
+			} else if t.Keysym.Sym == sdl.K_c &&
+				!u.val.IsPwd() {
 				state := sdl.GetKeyboardState()
 				if state[sdl.SCANCODE_LCTRL] == 1 ||
 					state[sdl.SCANCODE_RCTRL] == 1 {
@@ -154,7 +155,8 @@ func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 						}
 					}
 				}
-			} else if t.Keysym.Sym == sdl.K_x {
+			} else if t.Keysym.Sym == sdl.K_x &&
+				!u.val.IsPwd() {
 				state := sdl.GetKeyboardState()
 				if state[sdl.SCANCODE_LCTRL] == 1 ||
 					state[sdl.SCANCODE_RCTRL] == 1 {
@@ -184,6 +186,11 @@ func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 						g_log.Println(e)
 					}
 				}
+			}
+
+			callback := u.GetEventCallback(UI_EVT_KEY_DOWM)
+			if callback != nil {
+				callback(u, t)
 			}
 			return true
 		}

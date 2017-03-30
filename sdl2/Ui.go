@@ -9,6 +9,10 @@ const (
 	UI_EVT_LBTN_DCLICK = "k-lbtn_dclick"
 	UI_EVT_RBTN_DCLICK = "k-rbtn_dclick"
 	UI_EVT_MBTN_DCLICK = "k-mbtn_dclick"
+
+	//鍵盤 按鍵
+	UI_EVT_KEY_DOWM = "k-key-down"
+	UI_EVT_KEY_UP   = "k-key-up"
 )
 
 const (
