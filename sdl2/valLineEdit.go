@@ -1,10 +1,12 @@
 package sdl2
 
 import (
+	"bytes"
 	"errors"
 	"github.com/veandco/go-sdl2/sdl"
 	ttf "github.com/veandco/go-sdl2/sdl_ttf"
 	"king-go/algorithm"
+	"strings"
 	"time"
 )
 
@@ -16,7 +18,7 @@ type valLineEdit struct {
 	color sdl.Color
 
 	//文本字符串 緩存
-	text string
+	str []rune
 
 	//文本紋理
 	texture *sdl.Texture
@@ -39,8 +41,56 @@ type valLineEdit struct {
 
 	//最大允許輸入字符數
 	max int
+
+	//密碼框 顯示數據
+	c     rune
+	isPwd bool
 }
 
+func (v *valLineEdit) resetStr() {
+	v.str = make([]rune, 0)
+}
+func (v *valLineEdit) renderUTF8(arrs []rune) (*sdl.Surface, error) {
+	if v.isPwd {
+		var buf bytes.Buffer
+		for i := 0; i < len(arrs); i++ {
+			buf.WriteRune(v.c)
+		}
+		return v.font.RenderUTF8_Blended(buf.String(), v.color)
+	}
+
+	return v.font.RenderUTF8_Blended(string(arrs), v.color)
+}
+func (v *valLineEdit) sizeUTF8(arrs []rune) (int, error) {
+	if v.isPwd {
+		size := len(arrs)
+		arrs = make([]rune, size, size)
+		for i := 0; i < size; i++ {
+			arrs[i] = v.c
+		}
+	}
+	w, _, e := v.font.SizeUTF8(string(arrs))
+	if e != nil {
+		return 0, e
+	}
+	return w, nil
+}
+func (v *valLineEdit) IsPwd() bool {
+	return v.isPwd
+}
+func (v *valLineEdit) SetPwd(yes bool) {
+	v.isPwd = yes
+}
+func (v *valLineEdit) SetPwdChar(c string) {
+	str := strings.TrimSpace(c)
+	if str != "" {
+		v.c = []rune(str)[0]
+	}
+
+}
+func (v *valLineEdit) GetPwdChar() string {
+	return string(v.c)
+}
 func (v *valLineEdit) GetMax() int {
 	return v.max
 }
@@ -63,13 +113,12 @@ func (v *valLineEdit) SetChartRGB(r, g, b uint8) {
 
 //返回 光標
 func (v *valLineEdit) getChart(x int32) (int, int) {
-	font := v.font
-	arrs := []rune(v.text)
+	arrs := v.str
 	size := len(arrs)
 	pos := 0
 	offset := 0
 	n, e := algorithm.BinarySearch(0, size-1, func(i int) (int, error) {
-		w, _, e := font.SizeUTF8(string(arrs[:i+1]))
+		w, e := v.sizeUTF8(arrs[:i+1])
 
 		if e != nil {
 			return 0, e
@@ -88,7 +137,7 @@ func (v *valLineEdit) getChart(x int32) (int, int) {
 			return 0, nil
 		}
 
-		w2, _, e := font.SizeUTF8(string(arrs[:i]))
+		w2, e := v.sizeUTF8(arrs[:i])
 
 		if e != nil {
 			return 0, e
@@ -152,12 +201,12 @@ func (v *valLineEdit) getPos(n int) int {
 	if n == 0 {
 		return 0
 	}
-	arrs := []rune(v.text)
+	arrs := v.str
 	size := len(arrs)
 	if n > size {
 		n = size
 	}
-	w, _, e := v.font.SizeUTF8(string(arrs[:n]))
+	w, e := v.sizeUTF8(arrs[:n])
 	if e != nil {
 		g_log.Println(e)
 	}
@@ -196,7 +245,7 @@ func (v *valLineEdit) SelectRight() {
 	status := sdl.GetKeyboardState()
 	if status[sdl.SCANCODE_LSHIFT] != 0 ||
 		status[sdl.SCANCODE_RSHIFT] != 0 {
-		arrs := []rune(v.text)
+		arrs := v.str
 		size := len(arrs)
 		if v.chartEnd < size {
 			v.chartEnd++
@@ -206,7 +255,7 @@ func (v *valLineEdit) SelectRight() {
 		}
 	} else {
 		if v.chartBegin == v.chartEnd {
-			arrs := []rune(v.text)
+			arrs := v.str
 			size := len(arrs)
 			if v.chartBegin < size {
 				v.chartBegin++
@@ -246,7 +295,7 @@ func (v *valLineEdit) Destroy() {
 
 //返回 字符串值
 func (v *valLineEdit) GetString() string {
-	return v.text
+	return string(v.str)
 }
 
 //設置 字符串值
@@ -264,7 +313,7 @@ func (v *valLineEdit) SetString(str string, width int) {
 	}
 
 	if str == "" {
-		v.text = ""
+		v.resetStr()
 		//設置chart
 
 		v.chartBegin = 0
@@ -275,13 +324,12 @@ func (v *valLineEdit) SetString(str string, width int) {
 	}
 
 	//尋找 最大可顯示文本
-	font := v.font
 	arrs := []rune(str)
 	size := len(arrs)
 	pos := 0
 
 	n, e := algorithm.BinarySearch(0, size-1, func(i int) (int, error) {
-		w, _, e := font.SizeUTF8(string(arrs[:i+1]))
+		w, e := v.sizeUTF8(arrs[:i+1])
 
 		if e != nil {
 			return 0, e
@@ -294,7 +342,7 @@ func (v *valLineEdit) SetString(str string, width int) {
 			return 0, nil
 		}
 
-		w2, _, e := font.SizeUTF8(string(arrs[:i+2]))
+		w2, e := v.sizeUTF8(arrs[:i+2])
 
 		if e != nil {
 			return 0, e
@@ -311,7 +359,7 @@ func (v *valLineEdit) SetString(str string, width int) {
 		return
 	}
 
-	v.text = string(arrs[:n+1])
+	v.str = arrs[:n+1]
 	v.chartBegin = n + 1
 	v.chartEnd = n + 1
 	v.chartBeginPixel = pos
@@ -323,7 +371,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 		return
 	}
 
-	surface, e := v.font.RenderUTF8_Blended(v.text, v.color)
+	surface, e := v.renderUTF8(v.str)
 	if e != nil {
 		g_log.Println(e)
 		return
@@ -366,7 +414,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 
 //繪製文本
 func (v *valLineEdit) DrawText(renderer *sdl.Renderer, x, y, w, h int32) {
-	if v.text == "" {
+	if len(v.str) == 0 {
 		return
 	}
 
@@ -475,7 +523,7 @@ func (v *valLineEdit) ReplaceRune(arrs []rune, width int) error {
 	}
 	pos := begin + nSize
 
-	old := []rune(v.text)
+	old := v.str
 	oSize := len(old)
 	size := pos + (oSize - end)
 	if v.max > 0 && size > v.max {
@@ -487,16 +535,14 @@ func (v *valLineEdit) ReplaceRune(arrs []rune, width int) error {
 	copy(nRune[begin:], arrs)
 	copy(nRune[pos:], old[end:])
 
-	str := string(nRune)
-
-	w, _, e := v.font.SizeUTF8(str)
+	w, e := v.sizeUTF8(nRune)
 	if e != nil {
 		return e
 	}
 	if w > width {
 		return errors.New("text more max length")
 	}
-	w, _, e = v.font.SizeUTF8(string(nRune[:pos]))
+	w, e = v.sizeUTF8(nRune[:pos])
 	if e != nil {
 		return e
 	}
@@ -506,14 +552,14 @@ func (v *valLineEdit) ReplaceRune(arrs []rune, width int) error {
 	v.chartBeginPixel = w
 	v.chartEndPixel = w
 
-	v.text = str
+	v.str = nRune
 	v.destroyTexture()
 	return nil
 }
 
 //刪除
 func (v *valLineEdit) Backspace() {
-	arrs := []rune(v.text)
+	arrs := v.str
 	size := len(arrs)
 	if size == 0 {
 		return
@@ -525,14 +571,14 @@ func (v *valLineEdit) Backspace() {
 		}
 		n := v.chartBegin
 
-		w, _, e := v.font.SizeUTF8(string(arrs[:n-1]))
+		w, e := v.sizeUTF8(arrs[:n-1])
 		if e != nil {
 			g_log.Println(e)
 			return
 		}
 
 		copy(arrs[n-1:], arrs[n:])
-		v.text = string(arrs[:size-1])
+		v.str = arrs[:size-1]
 		v.destroyTexture()
 		v.chartBegin--
 		v.chartEnd--
@@ -551,9 +597,7 @@ func (v *valLineEdit) Backspace() {
 		copy(arrs[pos:], arrs[end:])
 		arrs := arrs[:pos+size-end]
 
-		str := string(arrs)
-
-		w, _, e := v.font.SizeUTF8(string(arrs[:pos]))
+		w, e := v.sizeUTF8(arrs[:pos])
 		if e != nil {
 			g_log.Println(e)
 			return
@@ -564,7 +608,7 @@ func (v *valLineEdit) Backspace() {
 		v.chartBeginPixel = w
 		v.chartEndPixel = w
 
-		v.text = str
+		v.str = arrs
 		v.destroyTexture()
 	}
 }
@@ -584,18 +628,19 @@ func (v *valLineEdit) GetSelectStr() (str string) {
 		end = v.chartBegin
 	}
 
-	arrs := []rune(v.text)
+	arrs := v.str
 	str = string(arrs[begin:end])
 	return
 }
 
 //光標 選擇
 func (v *valLineEdit) Select(begin, end int) {
-	if v.text == "" {
+	size := len(v.str)
+
+	if size == 0 {
 		return
 	}
 
-	size := len([]rune(v.text))
 	if begin > size {
 		begin = size
 	}

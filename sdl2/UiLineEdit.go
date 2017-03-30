@@ -40,6 +40,8 @@ func NewUiLineEditFont(fFile string, fSize int) (*UiLineEdit, error) {
 		font:  font,
 		color: sdl.Color{R: 255, G: 255, B: 255, A: 255},
 	}}
+	ui.val.resetStr()
+	ui.val.SetPwdChar("*")
 	ui.val.SetChartRGB(128, 128, 128)
 	ui.bkColor = sdl.Color{R: 0, G: 0, B: 0, A: 255}
 	ui.cursor = sdl.CreateSystemCursor(sdl.SYSTEM_CURSOR_IBEAM)
@@ -273,4 +275,24 @@ func (u *UiLineEdit) SelectAll() {
 	}
 
 	u.val.Select(0, len([]rune(str)))
+}
+
+//返回 是否 是密碼框
+func (u *UiLineEdit) IsPwd() bool {
+	return u.val.isPwd
+}
+
+//設置 是否 是密碼框
+func (u *UiLineEdit) SetPwd(yes bool) {
+	u.val.SetPwd(yes)
+}
+
+//設置 密碼框 顯示 文本
+func (u *UiLineEdit) SetPwdChar(c string) {
+	u.val.SetPwdChar(c)
+}
+
+//返回 密碼框 顯示 文本
+func (u *UiLineEdit) GetPwdChar() string {
+	return u.val.GetPwdChar()
 }
