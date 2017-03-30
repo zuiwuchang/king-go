@@ -79,7 +79,15 @@ func (v *valLineEdit) IsPwd() bool {
 	return v.isPwd
 }
 func (v *valLineEdit) SetPwd(yes bool) {
+	if v.isPwd == yes {
+		return
+	}
 	v.isPwd = yes
+	v.destroyTexture()
+	v.chartBegin = 0
+	v.chartEnd = 0
+	v.chartBeginPixel = 0
+	v.chartEndPixel = 0
 }
 func (v *valLineEdit) SetPwdChar(c string) {
 	str := strings.TrimSpace(c)
