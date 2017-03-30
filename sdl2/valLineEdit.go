@@ -90,7 +90,7 @@ func (v *valLineEdit) getChart(x int32) (int, int) {
 		}
 		return 1, nil
 	})
-	if e != nil {
+	if e != nil && e.Error() != "not found" {
 		g_log.Println(e)
 		return 0, 0
 	}
@@ -548,4 +548,24 @@ func (v *valLineEdit) Backspace() {
 		v.text = str
 		v.destroyTexture()
 	}
+}
+
+//返回 選中文本
+func (v *valLineEdit) GetSelectStr() (str string) {
+	if v.chartBegin == v.chartEnd {
+		return
+	}
+
+	var begin, end int
+	if v.chartBegin < v.chartEnd {
+		begin = v.chartBegin
+		end = v.chartEnd
+	} else {
+		begin = v.chartEnd
+		end = v.chartBegin
+	}
+
+	arrs := []rune(v.text)
+	str = string(arrs[begin:end])
+	return
 }

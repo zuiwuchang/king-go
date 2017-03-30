@@ -162,6 +162,7 @@ func CreateWindow(title string, w, h, fps int) error {
 
 	director.window = window
 	director.renderer = renderer
+
 	return nil
 }
 

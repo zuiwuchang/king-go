@@ -132,6 +132,49 @@ func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 				u.val.SelectRight()
 			} else if t.Keysym.Sym == sdl.K_BACKSPACE {
 				u.val.Backspace()
+			} else if t.Keysym.Sym == sdl.K_c {
+				state := sdl.GetKeyboardState()
+				if state[sdl.SCANCODE_LCTRL] == 1 ||
+					state[sdl.SCANCODE_RCTRL] == 1 {
+					//copy
+					str := u.val.GetSelectStr()
+					if str != "" {
+						e := sdl.SetClipboardText(str)
+						if e != nil {
+							g_log.Println(e)
+						}
+					}
+				}
+			} else if t.Keysym.Sym == sdl.K_x {
+				state := sdl.GetKeyboardState()
+				if state[sdl.SCANCODE_LCTRL] == 1 ||
+					state[sdl.SCANCODE_RCTRL] == 1 {
+					//cut
+					str := u.val.GetSelectStr()
+					if str != "" {
+						e := sdl.SetClipboardText(str)
+						if e == nil {
+							w, _ := u.GetSize()
+							u.val.ReplaceStr("", int(w))
+						} else {
+							g_log.Println(e)
+						}
+					}
+				}
+			} else if t.Keysym.Sym == sdl.K_v {
+				state := sdl.GetKeyboardState()
+				if state[sdl.SCANCODE_LCTRL] == 1 ||
+					state[sdl.SCANCODE_RCTRL] == 1 {
+					//paste
+					str, e := sdl.GetClipboardText()
+					if e == nil {
+						if str != "" {
+							u.ReplaceStr(str)
+						}
+					} else {
+						g_log.Println(e)
+					}
+				}
 			}
 			return true
 		}
