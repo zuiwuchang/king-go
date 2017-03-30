@@ -124,6 +124,31 @@ func (u *UiLineEdit) onBtnEvt(t *sdl.MouseButtonEvent) bool {
 }
 func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 	switch t := evt.(type) {
+	case *sdl.KeyDownEvent:
+		if getDirector().focus == u {
+			if t.Keysym.Sym == sdl.K_LEFT {
+				u.val.SelectLeft()
+			} else if t.Keysym.Sym == sdl.K_RIGHT {
+				u.val.SelectRight()
+			} else if t.Keysym.Sym == sdl.K_BACKSPACE {
+				u.val.Backspace()
+			}
+			return true
+		}
+	case *sdl.TextInputEvent:
+		if getDirector().focus == u {
+			size := len(t.Text)
+			b := make([]byte, 0, size)
+			for i := 0; i < size; i++ {
+				if t.Text[i] == 0 {
+					break
+				} else {
+					b = append(b, t.Text[i])
+				}
+			}
+			u.ReplaceStr(string(b))
+			return true
+		}
 	case *sdl.MouseButtonEvent:
 		u.onBtnEvt(t)
 	case *sdl.MouseMotionEvent:
@@ -148,4 +173,29 @@ func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 	}
 
 	return false
+}
+
+//將 選中項 以 字符串 替換
+func (u *UiLineEdit) ReplaceStr(str string) error {
+	w, _ := u.GetSize()
+	w -= ui_LineEdit_offsetx * 2
+
+	arrs := []rune(str)
+	e := u.val.ReplaceRune(arrs, int(w))
+	if e != nil {
+		g_log.Println(e)
+	}
+	return e
+}
+
+//將 選中項 以 []rune 替換
+func (u *UiLineEdit) ReplaceRune(arrs []rune) error {
+	w, _ := u.GetSize()
+	w -= ui_LineEdit_offsetx * 2
+
+	e := u.val.ReplaceRune(arrs, int(w))
+	if e != nil {
+		g_log.Println(e)
+	}
+	return e
 }

@@ -1,10 +1,10 @@
 package sdl2
 
 import (
+	"errors"
 	"github.com/veandco/go-sdl2/sdl"
 	ttf "github.com/veandco/go-sdl2/sdl_ttf"
 	"king-go/algorithm"
-	"log"
 	"time"
 )
 
@@ -58,7 +58,7 @@ func (v *valLineEdit) getChart(x int32) (int, int) {
 	arrs := []rune(v.text)
 	size := len(arrs)
 	pos := 0
-
+	offset := 0
 	n, e := algorithm.BinarySearch(0, size-1, func(i int) (int, error) {
 		w, _, e := font.SizeUTF8(string(arrs[:i+1]))
 
@@ -68,6 +68,7 @@ func (v *valLineEdit) getChart(x int32) (int, int) {
 		if int32(w) < x {
 			if i+1 == size {
 				pos = w
+				offset = 1
 				return 0, nil
 			}
 			return -1, nil
@@ -90,10 +91,10 @@ func (v *valLineEdit) getChart(x int32) (int, int) {
 		return 1, nil
 	})
 	if e != nil {
-		log.Println(e)
+		g_log.Println(e)
 		return 0, 0
 	}
-	return n, pos
+	return n + offset, pos
 }
 
 //返回是否 正在 文本選擇中
@@ -115,10 +116,18 @@ func (v *valLineEdit) SelectStart(x int32) {
 
 	n, pixel := v.getChart(x)
 
-	v.chartBegin = n
-	v.chartBeginPixel = pixel
-	v.chartEnd = n
-	v.chartEndPixel = pixel
+	status := sdl.GetKeyboardState()
+	if status[sdl.SCANCODE_LSHIFT] != 0 ||
+		status[sdl.SCANCODE_RSHIFT] != 0 {
+		v.chartEnd = n
+		v.chartEndPixel = pixel
+	} else {
+
+		v.chartBegin = n
+		v.chartBeginPixel = pixel
+		v.chartEnd = n
+		v.chartEndPixel = pixel
+	}
 }
 
 //結束 選擇文本
@@ -130,14 +139,96 @@ func (v *valLineEdit) SelectStop(x int32) {
 	v.isSelect = false
 }
 
+func (v *valLineEdit) getPos(n int) int {
+	if n == 0 {
+		return 0
+	}
+	arrs := []rune(v.text)
+	size := len(arrs)
+	if n > size {
+		n = size
+	}
+	w, _, e := v.font.SizeUTF8(string(arrs[:n]))
+	if e != nil {
+		g_log.Println(e)
+	}
+	return w
+}
+func (v *valLineEdit) SelectLeft() {
+	status := sdl.GetKeyboardState()
+	if status[sdl.SCANCODE_LSHIFT] != 0 ||
+		status[sdl.SCANCODE_RSHIFT] != 0 {
+		if v.chartEnd > 0 {
+			v.chartEnd--
+
+			pos := v.getPos(v.chartEnd)
+			v.chartEndPixel = pos
+		}
+	} else {
+		if v.chartBegin == v.chartEnd {
+			if v.chartBegin > 0 {
+				v.chartBegin--
+				v.chartEnd--
+
+				pos := v.getPos(v.chartBegin)
+				v.chartBeginPixel = pos
+				v.chartEndPixel = pos
+			}
+		} else if v.chartBegin < v.chartEnd {
+			v.chartEnd = v.chartBegin
+			v.chartEndPixel = v.chartBeginPixel
+		} else {
+			v.chartBegin = v.chartEnd
+			v.chartBeginPixel = v.chartEndPixel
+		}
+	}
+}
+func (v *valLineEdit) SelectRight() {
+	status := sdl.GetKeyboardState()
+	if status[sdl.SCANCODE_LSHIFT] != 0 ||
+		status[sdl.SCANCODE_RSHIFT] != 0 {
+		arrs := []rune(v.text)
+		size := len(arrs)
+		if v.chartEnd < size {
+			v.chartEnd++
+
+			pos := v.getPos(v.chartEnd)
+			v.chartEndPixel = pos
+		}
+	} else {
+		if v.chartBegin == v.chartEnd {
+			arrs := []rune(v.text)
+			size := len(arrs)
+			if v.chartBegin < size {
+				v.chartBegin++
+				v.chartEnd++
+
+				pos := v.getPos(v.chartBegin)
+				v.chartBeginPixel = pos
+				v.chartEndPixel = pos
+			}
+		} else if v.chartBegin > v.chartEnd {
+			v.chartEnd = v.chartBegin
+			v.chartEndPixel = v.chartBeginPixel
+		} else {
+			v.chartBegin = v.chartEnd
+			v.chartBeginPixel = v.chartEndPixel
+		}
+	}
+}
+func (v *valLineEdit) destroyTexture() {
+	if v.texture != nil {
+		v.texture.Destroy()
+		v.texture = nil
+	}
+}
+
 //銷毀 資源
 func (v *valLineEdit) Destroy() {
 	if v.font != nil {
 		v.font.Close()
 	}
-	if v.texture != nil {
-		v.texture.Destroy()
-	}
+	v.destroyTexture()
 	if v.chartTexture != nil {
 		v.chartTexture.Destroy()
 	}
@@ -151,6 +242,7 @@ func (v *valLineEdit) GetString() string {
 
 //設置 字符串值
 func (v *valLineEdit) SetString(str string, width int) {
+
 	if v.texture != nil {
 		v.texture.Destroy()
 		v.texture = nil
@@ -183,6 +275,7 @@ func (v *valLineEdit) SetString(str string, width int) {
 			return 1, nil
 		}
 		if i+1 == size {
+			pos = w
 			return 0, nil
 		}
 
@@ -199,13 +292,13 @@ func (v *valLineEdit) SetString(str string, width int) {
 	})
 
 	if e != nil {
-		log.Println(e)
+		g_log.Println(e)
 		return
 	}
 
 	v.text = string(arrs[:n+1])
-	v.chartBegin = n
-	v.chartEnd = n
+	v.chartBegin = n + 1
+	v.chartEnd = n + 1
 	v.chartBeginPixel = pos
 	v.chartEndPixel = pos
 }
@@ -217,7 +310,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 
 	surface, e := v.font.RenderUTF8_Blended(v.text, v.color)
 	if e != nil {
-		log.Println(e)
+		g_log.Println(e)
 		return
 	}
 	surfaceTarget, e := sdl.CreateRGBSurface(0,
@@ -230,7 +323,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 		A_MASK,
 	)
 	if e != nil {
-		log.Println(e)
+		g_log.Println(e)
 		return
 	}
 
@@ -250,7 +343,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 
 	texture, e := renderer.CreateTextureFromSurface(surfaceTarget)
 	if e != nil {
-		log.Println(e)
+		g_log.Println(e)
 		return
 	}
 	v.texture = texture
@@ -330,7 +423,7 @@ func (v *valLineEdit) initChartTexture(renderer *sdl.Renderer) {
 		A_MASK,
 	)
 	if e != nil {
-		log.Println(e)
+		g_log.Println(e)
 		return
 	}
 	surface.FillRect(&sdl.Rect{X: 0, Y: 0, W: 20, H: 20},
@@ -338,8 +431,121 @@ func (v *valLineEdit) initChartTexture(renderer *sdl.Renderer) {
 	)
 
 	if texture, e := renderer.CreateTextureFromSurface(surface); e != nil {
-		log.Println(e)
+		g_log.Println(e)
 	} else {
 		v.chartTexture = texture
+	}
+}
+
+//將 選中項 以 字符串 替換
+func (v *valLineEdit) ReplaceStr(str string, width int) error {
+	arrs := []rune(str)
+	return v.ReplaceRune(arrs, width)
+}
+
+//將 選中項 以 []rune 替換
+func (v *valLineEdit) ReplaceRune(arrs []rune, width int) error {
+	nSize := len(arrs)
+	if v.chartBegin == v.chartEnd && nSize == 0 {
+		return nil
+	}
+
+	old := []rune(v.text)
+	oSize := len(old)
+	size := oSize + nSize
+	nRune := make([]rune, size, size)
+
+	var begin, end int
+	if v.chartBegin < v.chartEnd {
+		begin = v.chartBegin
+		end = v.chartEnd
+	} else {
+		begin = v.chartEnd
+		end = v.chartBegin
+	}
+	pos := begin + nSize
+	copy(nRune, old[:begin])
+	copy(nRune[begin:], arrs)
+	copy(nRune[pos:], old[end:])
+
+	str := string(nRune)
+
+	w, _, e := v.font.SizeUTF8(str)
+	if e != nil {
+		return e
+	}
+	if w > width {
+		return errors.New("text more max length")
+	}
+	w, _, e = v.font.SizeUTF8(string(nRune[:pos]))
+	if e != nil {
+		return e
+	}
+
+	v.chartBegin = pos
+	v.chartEnd = pos
+	v.chartBeginPixel = w
+	v.chartEndPixel = w
+
+	v.text = str
+	v.destroyTexture()
+	return nil
+}
+
+//刪除
+func (v *valLineEdit) Backspace() {
+	arrs := []rune(v.text)
+	size := len(arrs)
+	if size == 0 {
+		return
+	}
+
+	if v.chartBegin == v.chartEnd {
+		if v.chartBegin == 0 {
+			return
+		}
+		n := v.chartBegin
+
+		w, _, e := v.font.SizeUTF8(string(arrs[:n-1]))
+		if e != nil {
+			g_log.Println(e)
+			return
+		}
+
+		copy(arrs[n-1:], arrs[n:])
+		v.text = string(arrs[:size-1])
+		v.destroyTexture()
+		v.chartBegin--
+		v.chartEnd--
+		v.chartBeginPixel = w
+		v.chartEndPixel = w
+	} else {
+		var begin, end int
+		if v.chartBegin < v.chartEnd {
+			begin = v.chartBegin
+			end = v.chartEnd
+		} else {
+			begin = v.chartEnd
+			end = v.chartBegin
+		}
+		pos := begin
+		copy(arrs[pos:], arrs[end:])
+		arrs := arrs[:pos+size-end]
+
+		str := string(arrs)
+
+		w, _, e := v.font.SizeUTF8(string(arrs[:pos]))
+		if e != nil {
+			g_log.Println(e)
+			return
+		}
+
+		v.chartBegin = pos
+		v.chartEnd = pos
+		v.chartBeginPixel = w
+		v.chartEndPixel = w
+
+		v.text = str
+		v.destroyTexture()
 	}
 }
