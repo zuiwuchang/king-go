@@ -39,14 +39,6 @@ func NewUiDialog(move bool, model bool) *UiDialog {
 	return ui
 }
 func (u *UiDialog) onButton(t *sdl.MouseButtonEvent, ok bool) bool {
-	if t.Type == sdl.MOUSEBUTTONDOWN {
-
-		posX, posY := u.GetPos()
-		sx, sy := u.ToScreenPos(posX, posY)
-		fmt.Println(t.X, t.Y, posX, posY, sx, sy)
-
-	}
-
 	switch t.Button {
 	case sdl.BUTTON_LEFT:
 		if t.Type == sdl.MOUSEBUTTONDOWN {
@@ -82,6 +74,7 @@ func (u *UiDialog) onButton(t *sdl.MouseButtonEvent, ok bool) bool {
 			return false
 		}
 	}
+	fmt.Println(ok)
 	return ok
 }
 func (u *UiDialog) doMove(x, y int32) {
