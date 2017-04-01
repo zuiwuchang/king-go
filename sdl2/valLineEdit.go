@@ -384,6 +384,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 		g_log.Println(e)
 		return
 	}
+	defer surface.Free()
 	surfaceTarget, e := sdl.CreateRGBSurface(0,
 		w,
 		h,
@@ -397,6 +398,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 		g_log.Println(e)
 		return
 	}
+	defer surfaceTarget.Free()
 
 	src := sdl.Rect{}
 	if surface.W < surfaceTarget.W {
@@ -418,6 +420,7 @@ func (v *valLineEdit) initTexture(renderer *sdl.Renderer, x, y, w, h int32) {
 		return
 	}
 	v.texture = texture
+
 }
 
 //繪製文本
@@ -497,6 +500,7 @@ func (v *valLineEdit) initChartTexture(renderer *sdl.Renderer) {
 		g_log.Println(e)
 		return
 	}
+	defer surface.Free()
 	surface.FillRect(&sdl.Rect{X: 0, Y: 0, W: 20, H: 20},
 		sdl.Color{R: v.r, G: v.g, B: v.b, A: 160}.Uint32(),
 	)

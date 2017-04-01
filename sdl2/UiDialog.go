@@ -1,7 +1,6 @@
 package sdl2
 
 import (
-	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -74,7 +73,6 @@ func (u *UiDialog) onButton(t *sdl.MouseButtonEvent, ok bool) bool {
 			return false
 		}
 	}
-	fmt.Println(ok)
 	return ok
 }
 func (u *UiDialog) doMove(x, y int32) {

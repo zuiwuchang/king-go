@@ -78,6 +78,7 @@ func (u *UiLineEdit) Draw(renderer *sdl.Renderer, duration time.Duration) {
 }
 
 func (u *UiLineEdit) Destroy() {
+
 	if u.cursor != nil {
 		sdl.FreeCursor(u.cursor)
 	}
