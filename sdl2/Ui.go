@@ -43,7 +43,6 @@ func posInRect(posX, posY, x, y, w, h int) bool {
 }
 func (u *UiBase) posInRect(posX, posY int32) bool {
 	x, y := u.GetDrawPos()
-	x, y = u.ToScreenPos(x, y)
 	w, h := u.GetSize()
 	return posInRect(int(posX), int(posY), int(x), int(y), w, h)
 }
