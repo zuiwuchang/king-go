@@ -24,6 +24,7 @@ func NewUiBtuuon(normal, down *sdl.Texture) *UiBtuuon {
 		normalTexture: normal,
 		downTexture:   down,
 	}
+	ui.SetAlpha(255)
 	ui.SetTexture(normal)
 	return ui
 }

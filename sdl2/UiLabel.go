@@ -38,6 +38,7 @@ func NewUiLabelFont(fFile string, fSize int) (*UiLabel, error) {
 		pading: 3,
 		color:  sdl.Color{R: 255, G: 255, B: 255, A: 255},
 	}
+	ui.SetAlpha(255)
 	return ui, nil
 }
 func (u *UiLabel) destoryTexture() {

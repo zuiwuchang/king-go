@@ -40,6 +40,7 @@ func NewUiLineEditFont(fFile string, fSize int) (*UiLineEdit, error) {
 		font:  font,
 		color: sdl.Color{R: 255, G: 255, B: 255, A: 255},
 	}}
+	ui.SetAlpha(255)
 	ui.val.resetStr()
 	ui.val.SetPwdChar("*")
 	ui.val.SetChartRGB(128, 128, 128)

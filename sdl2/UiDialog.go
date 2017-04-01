@@ -34,6 +34,7 @@ func NewUiDialog(move bool, model bool) *UiDialog {
 		canMove: move,
 		isModel: model,
 	}
+	ui.SetAlpha(255)
 	ui.SetVisible(false)
 	return ui
 }

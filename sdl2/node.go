@@ -96,6 +96,11 @@ type Object interface {
 	SetAnchor(anchorX, anchorY float64)
 	SetAnchorX(anchor float64)
 	SetAnchorY(anchor float64)
+
+	//設置 透明度
+	SetAlpha(a uint8)
+	//返回 透明度
+	GetAlpha() uint8
 }
 
 type RendererFlip sdl.RendererFlip
@@ -137,8 +142,23 @@ type Node struct {
 	//是否不可見
 	hide bool
 
+	//透明
+	Alpha uint8
+
 	//動作集合
 	actions map[Action]bool
+}
+
+func NewNode(x, y float64, z, w, h int, texture *sdl.Texture) *Node {
+	return &Node{
+		X:       x,
+		Y:       y,
+		Z:       z,
+		Width:   w,
+		Height:  h,
+		Texture: texture,
+		Alpha:   255,
+	}
 }
 
 //是否可見
@@ -254,9 +274,15 @@ func (n *Node) GetDrawPos() (float64, float64) {
 
 //繪製自己
 func (n *Node) draw(renderer *sdl.Renderer, duration time.Duration) {
+	alpha := n.GetAlpha()
+	if alpha == 0 {
+		return
+	}
 	//繪製自己
 	texture := n.Texture
 	if texture != nil {
+		texture.SetAlphaMod(alpha)
+
 		x, y := n.GetDrawPos()
 		renderer.CopyEx(texture,
 			nil,
@@ -455,4 +481,14 @@ func (n *Node) SetAnchorX(anchor float64) {
 }
 func (n *Node) SetAnchorY(anchor float64) {
 	n.AnchorY = anchor
+}
+
+//設置 透明度
+func (n *Node) SetAlpha(a uint8) {
+	n.Alpha = a
+}
+
+//返回 透明度
+func (n *Node) GetAlpha() uint8 {
+	return n.Alpha
 }
