@@ -40,6 +40,11 @@ type Object interface {
 	//設置 大小
 	SetSize(w int, h int)
 
+	//返回繪製坐標
+	GetDrawPos() (float64, float64)
+	//返回繪製 大小
+	GetDrawSize() (float64, float64)
+
 	//返回 z 坐標
 	GetZ() int
 	//返回 z 坐標
@@ -101,6 +106,16 @@ type Object interface {
 	SetAlpha(a uint8)
 	//返回 透明度
 	GetAlpha() uint8
+
+	//設置 縮放
+	SetScale(scaleX, scaleY float64)
+	SetScaleX(scaleX float64)
+	SetScaleY(scaleY float64)
+
+	//返回 縮放
+	GetScale() (scaleX float64, scaleY float64)
+	GetScaleX() float64
+	GetScaleY() float64
 }
 
 type RendererFlip sdl.RendererFlip
@@ -117,12 +132,15 @@ type Node struct {
 	Texture *sdl.Texture
 
 	//坐標 大小
-	X, Y          float64
-	Width, Height int
+	X, Y float64
+
+	//放大縮小 [0,+...)
+	ScaleX, ScaleY float64
+	Width, Height  int
 	//z坐標 值越小 越先繪製 越後響應事件
 	Z int
 
-	//錨點 [0,100]
+	//錨點 [0,1]
 	AnchorX, AnchorY float64
 
 	//旋轉角度
@@ -156,6 +174,8 @@ func NewNode(x, y float64, z, w, h int, texture *sdl.Texture) *Node {
 		Z:       z,
 		Width:   w,
 		Height:  h,
+		ScaleX:  1,
+		ScaleY:  1,
 		Texture: texture,
 		Alpha:   255,
 	}
@@ -189,13 +209,16 @@ func (n *Node) ToScreenPos(x, y float64) (float64, float64) {
 
 		w, h := node.GetSize()
 		anchorX, anchorY := node.GetAnchor()
-		tx = tx - float64(w)*anchorX
-		ty = ty - float64(h)*anchorY
+		scaleX, scaleY := node.GetScale()
+		tx -= float64(w) * scaleX * anchorX
+		ty -= float64(h) * scaleY * anchorY
 
+		x *= scaleX
+		y *= scaleY
 		x += tx
 		y += ty
-	}
 
+	}
 	return x, y
 }
 
@@ -264,11 +287,41 @@ func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 		n.childs[i].Draw(renderer, duration)
 	}
 }
+func (n *Node) GetDrawScale() (float64, float64) {
+	x, y := n.GetScale()
+
+	for node := n.GetParent(); node != nil; node = node.GetParent() {
+		tx, ty := node.GetScale()
+		if x != 0 {
+			x *= tx
+		}
+		if y != 0 {
+			y *= ty
+		}
+		if x == 0 && y == 0 {
+			break
+		}
+	}
+
+	return x, y
+}
+
+//返回繪製 大小
+func (n *Node) GetDrawSize() (float64, float64) {
+	scaleX, scaleY := n.GetDrawScale()
+	return float64(n.Width) * scaleX, float64(n.Height) * scaleY
+}
 
 //返回繪製坐標
 func (n *Node) GetDrawPos() (float64, float64) {
-	x := n.X - float64(n.Width)*n.AnchorX
-	y := n.Y - float64(n.Height)*n.AnchorY
+	w, h := n.GetSize()
+	x, y := n.GetPos()
+
+	scaleX, scaleY := n.GetScale()
+
+	x -= float64(w) * scaleX * n.AnchorX
+	y -= float64(h) * scaleY * n.AnchorY
+
 	return n.ToScreenPos(x, y)
 }
 
@@ -284,9 +337,10 @@ func (n *Node) draw(renderer *sdl.Renderer, duration time.Duration) {
 		texture.SetAlphaMod(alpha)
 
 		x, y := n.GetDrawPos()
+		w, h := n.GetDrawSize()
 		renderer.CopyEx(texture,
 			nil,
-			&sdl.Rect{X: int32(x), Y: int32(y), W: int32(n.Width), H: int32(n.Height)},
+			&sdl.Rect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)},
 			n.Angle,
 			nil,
 			n.Flip,
@@ -491,4 +545,41 @@ func (n *Node) SetAlpha(a uint8) {
 //返回 透明度
 func (n *Node) GetAlpha() uint8 {
 	return n.Alpha
+}
+
+//設置 縮放
+func (n *Node) SetScale(scaleX, scaleY float64) {
+	if scaleX < 0 {
+		scaleX = 0
+	}
+	if scaleY < 0 {
+		scaleY = 0
+	}
+	n.ScaleX = scaleX
+	n.ScaleY = scaleY
+}
+func (n *Node) SetScaleX(scale float64) {
+	if scale < 0 {
+		n.ScaleX = 0
+		return
+	}
+	n.ScaleX = scale
+}
+func (n *Node) SetScaleY(scale float64) {
+	if scale < 0 {
+		n.ScaleY = 0
+		return
+	}
+	n.ScaleY = scale
+}
+
+//返回 縮放
+func (n *Node) GetScale() (float64, float64) {
+	return n.ScaleX, n.ScaleY
+}
+func (n *Node) GetScaleX() float64 {
+	return n.ScaleX
+}
+func (n *Node) GetScaleY() float64 {
+	return n.ScaleY
 }

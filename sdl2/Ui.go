@@ -43,8 +43,8 @@ func posInRect(posX, posY, x, y, w, h int) bool {
 }
 func (u *UiBase) posInRect(posX, posY int32) bool {
 	x, y := u.GetDrawPos()
-	w, h := u.GetSize()
-	return posInRect(int(posX), int(posY), int(x), int(y), w, h)
+	w, h := u.GetDrawSize()
+	return posInRect(int(posX), int(posY), int(x), int(y), int(w), int(h))
 }
 
 //設置 事件回調

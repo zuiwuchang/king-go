@@ -1,7 +1,6 @@
 package sdl2
 
 import (
-	//"fmt"
 	"time"
 )
 

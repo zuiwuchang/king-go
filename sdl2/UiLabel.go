@@ -39,6 +39,7 @@ func NewUiLabelFont(fFile string, fSize int) (*UiLabel, error) {
 		color:  sdl.Color{R: 255, G: 255, B: 255, A: 255},
 	}
 	ui.SetAlpha(255)
+	ui.SetScale(1, 1)
 	return ui, nil
 }
 func (u *UiLabel) destoryTexture() {
@@ -80,7 +81,7 @@ func (u *UiLabel) initTexture() {
 func (u *UiLabel) Draw(renderer *sdl.Renderer, duration time.Duration) {
 	//繪製背景
 	x, y := u.GetDrawPos()
-	w, h := u.GetSize()
+	w, h := u.GetDrawSize()
 
 	if texture := u.GetTexture(); texture != nil {
 		renderer.Copy(texture,

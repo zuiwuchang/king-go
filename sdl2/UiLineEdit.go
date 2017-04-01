@@ -41,6 +41,8 @@ func NewUiLineEditFont(fFile string, fSize int) (*UiLineEdit, error) {
 		color: sdl.Color{R: 255, G: 255, B: 255, A: 255},
 	}}
 	ui.SetAlpha(255)
+	ui.SetScale(1, 1)
+
 	ui.val.resetStr()
 	ui.val.SetPwdChar("*")
 	ui.val.SetChartRGB(128, 128, 128)
@@ -59,7 +61,7 @@ func (u *UiLineEdit) SetValue(text string) {
 func (u *UiLineEdit) Draw(renderer *sdl.Renderer, duration time.Duration) {
 	//繪製背景
 	x, y := u.GetDrawPos()
-	w, h := u.GetSize()
+	w, h := u.GetDrawSize()
 
 	renderer.SetDrawColor(u.bkColor.R, u.bkColor.G, u.bkColor.B, u.bkColor.A)
 	renderer.FillRect(&sdl.Rect{X: int32(x), Y: int32(y), W: int32(u.Width), H: int32(u.Height)})
