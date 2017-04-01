@@ -140,6 +140,7 @@ func (u *UiBtuuon) onMBtnEvt(t *sdl.MouseButtonEvent) bool {
 	return false
 }
 func (u *UiBtuuon) OnEvent(evt sdl.Event) bool {
+
 	switch t := evt.(type) {
 	case *sdl.MouseButtonEvent:
 		switch t.Button {
