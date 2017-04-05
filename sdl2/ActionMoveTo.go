@@ -34,7 +34,7 @@ func (a *ActionMoveTo) SetLoop(yes bool) Action {
 	return a
 }
 
-//x,y 當前坐標 targetX, targetY 目標坐標 duration 花費時間
+//x,y 目標坐標 duration 花費時間
 func NewActionMoveTo(x, y float64, duration time.Duration) *ActionMoveTo {
 	return &ActionMoveTo{x: x,
 		y:        y,

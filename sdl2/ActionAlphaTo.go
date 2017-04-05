@@ -34,7 +34,7 @@ func (a *ActionAlphaTo) SetLoop(yes bool) Action {
 	return a
 }
 
-//x,y 當前坐標 targetX, targetY 目標坐標 duration 花費時間
+//alpha 目標alpha duration 花費時間
 func NewActionAlphaTo(alpha uint8, duration time.Duration) *ActionAlphaTo {
 	return &ActionAlphaTo{
 		alpha:    int(alpha),
