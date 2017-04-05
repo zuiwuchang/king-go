@@ -13,6 +13,10 @@ const (
 	//鍵盤 按鍵
 	UI_EVT_KEY_DOWM = "k-key-down"
 	UI_EVT_KEY_UP   = "k-key-up"
+
+	//焦點
+	UI_EVT_FOCUS_IN  = "k-foucs-in"
+	UI_EVT_FOCUS_OUT = "k-foucs-out"
 )
 
 const (

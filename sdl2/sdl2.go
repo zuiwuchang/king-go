@@ -219,7 +219,10 @@ func Run(r, g, b, a uint8, show bool /*是否顯示調試信息*/) {
 
 	//主邏輯循環
 	last := time.Now()
-	wait := time.Second / time.Duration(fps)
+	var wait time.Duration
+	if fps > 0 {
+		wait = time.Second / time.Duration(fps)
+	}
 	nowFPS := 0
 	lastFPS := last
 	for {
@@ -244,7 +247,7 @@ func Run(r, g, b, a uint8, show bool /*是否顯示調試信息*/) {
 
 		//保證 fps 省略掉多餘繪製
 		now := time.Now()
-		if now.Before(last.Add(wait)) {
+		if wait > 0 && now.Before(last.Add(wait)) {
 			continue
 		}
 		duration := now.Sub(last)
@@ -267,6 +270,7 @@ func Run(r, g, b, a uint8, show bool /*是否顯示調試信息*/) {
 			drawShow(fps)
 			if now.After(lastFPS.Add(time.Second * 1)) {
 				lastFPS = now
+				fps = nowFPS
 				nowFPS = 0
 			}
 		}

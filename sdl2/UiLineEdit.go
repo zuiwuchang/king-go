@@ -130,6 +130,20 @@ func (u *UiLineEdit) onBtnEvt(t *sdl.MouseButtonEvent) bool {
 }
 func (u *UiLineEdit) OnEvent(evt sdl.Event) bool {
 	switch t := evt.(type) {
+	case *FocusInEvent:
+		if t.Obj == u {
+			if callback := u.GetEventCallback(UI_EVT_FOCUS_IN); callback != nil {
+				callback(u, nil)
+			}
+			return true
+		}
+	case *FocusOutEvent:
+		if t.Obj == u {
+			if callback := u.GetEventCallback(UI_EVT_FOCUS_OUT); callback != nil {
+				callback(u, nil)
+			}
+			return true
+		}
 	case *sdl.KeyDownEvent:
 		if getDirector().focus == u {
 			if t.Keysym.Sym == sdl.K_LEFT {
