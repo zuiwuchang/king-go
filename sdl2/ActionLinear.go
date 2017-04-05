@@ -94,8 +94,8 @@ func NewActionLinear(as ...Action) *ActionLinear {
 func (a *ActionLinear) Destory() {
 	for _, node := range a.actions {
 		ac := node.action
-		if ac.GetAutoDestory() {
-			ac.Destory()
+		if ac.GetAutoDestroy() {
+			ac.Destroy()
 		}
 	}
 

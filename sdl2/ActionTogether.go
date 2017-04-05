@@ -124,8 +124,8 @@ func (a *ActionTogether) DoAction(node Object, duration time.Duration) {
 func (a *ActionTogether) Destory() {
 	for _, node := range a.actions {
 		ac := node.action
-		if ac.GetAutoDestory() {
-			ac.Destory()
+		if ac.GetAutoDestroy() {
+			ac.Destroy()
 		}
 	}
 

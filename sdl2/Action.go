@@ -13,10 +13,10 @@ type Action interface {
 	//執行動作
 	DoAction(node Object, duration time.Duration)
 	//釋放 動作
-	Destory()
+	Destroy()
 	//是否自動 釋放
 	//返回 true 移除action時 自動調用 a.Destory()
-	GetAutoDestory() bool
+	GetAutoDestroy() bool
 	SetAutoDestory(yes bool)
 	//返回一個動作副本
 	Clone() Action
@@ -56,12 +56,12 @@ func (a *ActionBase) SetLoop(yes bool) {
 }
 
 //釋放 動作
-func (a *ActionBase) Destory() {
+func (a *ActionBase) Destroy() {
 }
 
 //是否自動 釋放
-//返回 true 移除action時 自動調用 a.Destory()
-func (a *ActionBase) GetAutoDestory() bool {
+//返回 true 移除action時 自動調用 a.Destroy()
+func (a *ActionBase) GetAutoDestroy() bool {
 	return a.auto
 }
 

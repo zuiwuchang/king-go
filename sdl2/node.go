@@ -356,9 +356,18 @@ func (n *Node) OnAction(duration time.Duration) {
 
 //處理 事件 返回 true 停止事件傳遞
 func (n *Node) OnEvent(evt sdl.Event) bool {
+	size := len(n.childs)
+	if size == 0 {
+		return false
+	}
+	//備份子節點 防止 在 OnEvent 中 改變子節點
+	childs := make([]Object, size, size)
+	copy(childs, n.childs)
+
 	//詢問 子元素
-	for i := len(n.childs) - 1; i > -1; i-- {
-		if n.childs[i].IsVisible() && n.childs[i].OnEvent(evt) {
+	for i := size - 1; i > -1; i-- {
+		if childs[i].IsVisible() &&
+			childs[i].OnEvent(evt) {
 			return true
 		}
 	}
@@ -367,16 +376,21 @@ func (n *Node) OnEvent(evt sdl.Event) bool {
 
 //銷毀 元素
 func (n *Node) Destroy() {
-	for i := 0; i < len(n.childs); i++ {
-		n.childs[i].Destroy()
-	}
-	n.childs = nil
-	for a, _ := range n.actions {
-		if a.GetAutoDestory() {
-			a.Destory()
+	if n.childs != nil {
+		for i := 0; i < len(n.childs); i++ {
+			n.childs[i].Destroy()
 		}
+		n.childs = nil
 	}
-	n.actions = nil
+
+	if n.actions != nil {
+		for a, _ := range n.actions {
+			if a.GetAutoDestroy() {
+				a.Destroy()
+			}
+		}
+		n.actions = nil
+	}
 }
 
 //初始化 子元素 slice
@@ -502,8 +516,8 @@ func (n *Node) RemoveAction(a Action) {
 	if n.actions != nil {
 		delete(n.actions, a)
 	}
-	if a.GetAutoDestory() {
-		a.Destory()
+	if a.GetAutoDestroy() {
+		a.Destroy()
 	}
 }
 
