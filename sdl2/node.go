@@ -269,12 +269,6 @@ func (n *Node) GetMinZ() int {
 
 //繪製自己
 func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
-	//執行動作
-	n.OnAction(duration)
-	for i := 0; i < len(n.childs); i++ {
-		n.childs[i].OnAction(duration)
-	}
-
 	if !n.IsVisible() {
 		//不可見 直接返回
 		return
@@ -348,12 +342,15 @@ func (n *Node) draw(renderer *sdl.Renderer, duration time.Duration) {
 	}
 }
 func (n *Node) OnAction(duration time.Duration) {
-	if n.actions == nil {
-		return
+	if n.actions != nil {
+		for a, _ := range n.actions {
+			a.DoAction(n, duration)
+		}
 	}
 
-	for a, _ := range n.actions {
-		a.DoAction(n, duration)
+	//執行動作
+	for i := 0; i < len(n.childs); i++ {
+		n.childs[i].OnAction(duration)
 	}
 }
 

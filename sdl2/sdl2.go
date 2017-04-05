@@ -258,6 +258,7 @@ func Run(r, g, b, a uint8, show bool /*是否顯示調試信息*/) {
 
 		//繪製 元素到 renderer
 		if scene := GetScene(); scene != nil {
+			scene.OnAction(duration)
 			scene.Draw(renderer, duration)
 		}
 
