@@ -20,20 +20,6 @@ type ActionMoveTo struct {
 	speedX, speedY float64
 }
 
-func (a *ActionMoveTo) SetAutoDestory(yes bool) Action {
-	a.auto = yes
-	return a
-}
-func (a *ActionMoveTo) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-func (a *ActionMoveTo) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
-}
-
 //x,y 目標坐標 duration 花費時間
 func NewActionMoveTo(x, y float64, duration time.Duration) *ActionMoveTo {
 	return &ActionMoveTo{x: x,

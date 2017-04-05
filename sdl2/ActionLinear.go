@@ -23,20 +23,6 @@ type ActionLinear struct {
 	pos int
 }
 
-func (a *ActionLinear) SetAutoDestory(yes bool) Action {
-	a.auto = yes
-	return a
-}
-func (a *ActionLinear) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-func (a *ActionLinear) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
-}
-
 //進入下個 action
 func actionLinearNext(node Object, _a Action, params interface{}) {
 	al := params.(*ActionLinear)

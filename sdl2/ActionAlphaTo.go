@@ -20,20 +20,6 @@ type ActionAlphaTo struct {
 	speed float64
 }
 
-func (a *ActionAlphaTo) SetAutoDestory(yes bool) Action {
-	a.auto = yes
-	return a
-}
-func (a *ActionAlphaTo) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-func (a *ActionAlphaTo) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
-}
-
 //alpha 目標alpha duration 花費時間
 func NewActionAlphaTo(alpha uint8, duration time.Duration) *ActionAlphaTo {
 	return &ActionAlphaTo{

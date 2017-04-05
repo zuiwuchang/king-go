@@ -27,20 +27,6 @@ type ActionMovie struct {
 	speedOk bool
 }
 
-func (a *ActionMovie) SetAutoDestory(yes bool) Action {
-	a.auto = yes
-	return a
-}
-func (a *ActionMovie) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-func (a *ActionMovie) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
-}
-
 //n 預計紋理數量 duration 花費時間
 func NewActionMovie(n int, duration time.Duration) *ActionMovie {
 	return &ActionMovie{textures: make([]*sdl.Texture, 0, n),

@@ -22,20 +22,6 @@ type ActionScaleTo struct {
 	speedY float64
 }
 
-func (a *ActionScaleTo) SetAutoDestory(yes bool) Action {
-	a.auto = yes
-	return a
-}
-func (a *ActionScaleTo) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-func (a *ActionScaleTo) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
-}
-
 //scaleX scaleY 目標scale duration 花費時間
 func NewActionScaleTo(scaleX, scaleY float64, duration time.Duration) *ActionScaleTo {
 	return &ActionScaleTo{

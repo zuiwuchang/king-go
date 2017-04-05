@@ -33,20 +33,6 @@ type ActionTogether struct {
 	actions []*actionTogetherNode
 }
 
-func (a *ActionTogether) SetAutoDestory(yes bool) Action {
-	a.auto = yes
-	return a
-}
-func (a *ActionTogether) SetCallBack(callback ActionCallBack, params interface{}) Action {
-	a.callback = callback
-	a.params = params
-	return a
-}
-func (a *ActionTogether) SetLoop(yes bool) Action {
-	a.loop = yes
-	return a
-}
-
 //創建並行動作
 func NewActionTogether(as ...Action) *ActionTogether {
 	rs := &ActionTogether{}
