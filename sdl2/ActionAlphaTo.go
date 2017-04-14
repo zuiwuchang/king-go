@@ -9,7 +9,7 @@ type ActionAlphaTo struct {
 	ActionBase
 
 	//目的 Alpha
-	alpha int
+	alpha float64
 
 	//花費時間
 	duration time.Duration
@@ -21,9 +21,9 @@ type ActionAlphaTo struct {
 }
 
 //alpha 目標alpha duration 花費時間
-func NewActionAlphaTo(alpha uint8, duration time.Duration) *ActionAlphaTo {
+func NewActionAlphaTo(alpha float64, duration time.Duration) *ActionAlphaTo {
 	return &ActionAlphaTo{
-		alpha:    int(alpha),
+		alpha:    alpha,
 		duration: duration,
 	}
 }
@@ -33,10 +33,10 @@ func (a *ActionAlphaTo) calculateSpeed(node Object) {
 	if a.speedOk {
 		return
 	}
-	alpha := int(node.GetAlpha())
+	alpha := node.GetAlpha()
 	size := a.alpha - alpha
 
-	a.speed = float64(size) / float64(a.duration/time.Millisecond)
+	a.speed = size / float64(a.duration/time.Millisecond)
 
 	a.speedOk = true
 }
@@ -46,7 +46,7 @@ func (a *ActionAlphaTo) DoAction(node Object, duration time.Duration) {
 	a.calculateSpeed(node)
 
 	//ok
-	pos := int(node.GetAlpha())
+	pos := node.GetAlpha()
 
 	if pos == a.alpha {
 		//不循環 移除 動作
@@ -59,7 +59,7 @@ func (a *ActionAlphaTo) DoAction(node Object, duration time.Duration) {
 		}
 		return
 	}
-	pos += int(a.speed * float64(duration/time.Millisecond))
+	pos += a.speed * float64(duration/time.Millisecond)
 	if a.speed < 0 {
 		if pos < a.alpha {
 			pos = a.alpha
@@ -69,7 +69,7 @@ func (a *ActionAlphaTo) DoAction(node Object, duration time.Duration) {
 			pos = a.alpha
 		}
 	}
-	node.SetAlpha(uint8(pos))
+	node.SetAlpha(pos)
 }
 
 //釋放 動作

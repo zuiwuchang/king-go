@@ -103,9 +103,9 @@ type Object interface {
 	SetAnchorY(anchor float64)
 
 	//設置 透明度
-	SetAlpha(a uint8)
+	SetAlpha(a float64)
 	//返回 透明度
-	GetAlpha() uint8
+	GetAlpha() float64
 
 	//設置 縮放
 	SetScale(scaleX, scaleY float64)
@@ -161,7 +161,7 @@ type Node struct {
 	hide bool
 
 	//透明
-	Alpha uint8
+	Alpha float64
 
 	//動作集合
 	actions map[Action]bool
@@ -328,7 +328,7 @@ func (n *Node) draw(renderer *sdl.Renderer, duration time.Duration) {
 	//繪製自己
 	texture := n.Texture
 	if texture != nil {
-		texture.SetAlphaMod(alpha)
+		texture.SetAlphaMod(uint8(alpha))
 
 		x, y := n.GetDrawPos()
 		w, h := n.GetDrawSize()
@@ -549,12 +549,12 @@ func (n *Node) SetAnchorY(anchor float64) {
 }
 
 //設置 透明度
-func (n *Node) SetAlpha(a uint8) {
+func (n *Node) SetAlpha(a float64) {
 	n.Alpha = a
 }
 
 //返回 透明度
-func (n *Node) GetAlpha() uint8 {
+func (n *Node) GetAlpha() float64 {
 	return n.Alpha
 }
 
