@@ -44,6 +44,7 @@ func (d *Director) pushEvent(evt interface{}) {
 	defer d.mutex.Unlock()
 	d.events.PushBack(evt)
 }
+
 func (d *Director) pollEvent() sdl.Event {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
@@ -313,4 +314,9 @@ func GetWindow() *sdl.Window {
 		return nil
 	}
 	return g_director.window
+}
+
+//壓入一個 事件
+func PushEvent(evt interface{}) {
+	g_director.pushEvent(evt)
 }
