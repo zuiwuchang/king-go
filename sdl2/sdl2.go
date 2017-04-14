@@ -229,8 +229,14 @@ func Run(r, g, b, a uint8, show bool /*是否顯示調試信息*/) {
 	for {
 		//獲取 擴展 事件
 		for evt := director.pollEvent(); evt != nil; evt = director.pollEvent() {
-			if scene := GetScene(); scene != nil {
-				scene.OnEvent(evt)
+			//處理 sdl 事件
+			switch evt.(type) {
+			case *sdl.QuitEvent:
+				goto END
+			default:
+				if scene := GetScene(); scene != nil {
+					scene.OnEvent(evt)
+				}
 			}
 		}
 		//獲取 sdl 事件
