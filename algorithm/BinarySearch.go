@@ -4,13 +4,12 @@ import (
 	"errors"
 )
 
+//使用 二分查找 尋找 [low,high] 中 滿足 compare 的 值
 //compare == 0  值i
 //compare < 0 值i 太小
 //compare > 0 值i 太大
-type BinarySearchCompare func(i int) (compare int, e error)
-
-//使用 二分查找 尋找 [low,high] 中 滿足 compare 的 值
-func BinarySearch(low, high int, compareFunc BinarySearchCompare) (int, error) {
+func BinarySearch(low, high int,
+	compareFunc func(i int) (compare int, e error)) (int, error) {
 	for low <= high {
 		mid := low + (high-low)/2
 		compare, e := compareFunc(mid)
