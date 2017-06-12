@@ -1,5 +1,9 @@
 package rbtree
 
+import (
+	"fmt"
+)
+
 //定義一個 樹 結構
 type _Element struct {
 	K IKey
@@ -235,9 +239,6 @@ func erase(root, z *_Element) *_Element {
 	return root
 }
 func eraseFixup(root, x *_Element) *_Element {
-	if x == _ElementNil {
-		return root
-	}
 	for x != root && !x.Red {
 		if x == x.P.L {
 			w := x.P.R
@@ -245,8 +246,8 @@ func eraseFixup(root, x *_Element) *_Element {
 				w.Red = false
 				x.P.Red = true
 				root = leftRotate(root, x.P)
-				w = x.P.R
 
+				w = x.P.R
 			}
 
 			if !w.L.Red && !w.R.Red { //case2
@@ -276,7 +277,6 @@ func eraseFixup(root, x *_Element) *_Element {
 				w = x.P.L
 
 			}
-
 			if !w.R.Red && !w.L.Red { //case2
 				w.Red = true
 				x = x.P
@@ -310,4 +310,8 @@ func search(x *_Element, k IKey) *_Element {
 		}
 	}
 	return x
+}
+
+func func_name() {
+	fmt.Println(123)
 }

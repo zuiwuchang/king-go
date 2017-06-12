@@ -188,8 +188,9 @@ func TestErase(t *testing.T) {
 }
 func TestRand(t *testing.T) {
 	rand.Seed(time.Now().Unix())
-	//rand.Seed(2)
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 500; i++ {
+		rand.Seed(int64(i))
+
 		m := New()
 		count := (rand.Int()%5 + 1) + 1024
 		length := 0
