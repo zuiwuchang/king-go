@@ -171,3 +171,143 @@ func insertFixup(root, z *_Element) *_Element {
 	root.Red = false
 	return root
 }
+
+//返回 最小 節點
+func min(x *_Element) *_Element {
+	for x != _ElementNil && x.L != _ElementNil {
+		x = x.L
+	}
+	return x
+}
+
+//以子樹 v 替換 子樹 u 並返回新的 root
+func transplant(root, u, v *_Element) *_Element {
+	if u.P == _ElementNil { //u爲root節點
+		root = v
+	} else if u == u.P.L { //u是 左孩子
+		u.P.L = v
+	} else /*if u==u.P.R*/ { //u是 右孩子
+		u.P.R = v
+	}
+
+	//更新 v的 父節點
+	v.P = u.P
+
+	return root
+}
+
+//刪除指定節點 並返回新的 root
+func erase(root, z *_Element) *_Element {
+	if z == _ElementNil {
+		return root
+	}
+
+	var x *_Element
+	y := z
+	red := y.Red
+	if z.L == _ElementNil {
+		x = z.R
+		root = transplant(root, z, z.R)
+	} else if z.R == _ElementNil {
+		x = z.L
+		root = transplant(root, z, z.L)
+	} else {
+		y = min(z.R)
+		red = y.Red
+		x = y.R
+		if y.P == z {
+			x.P = y
+		} else {
+			root = transplant(root, y, y.R)
+			y.R = z.R
+			y.R.P = y
+		}
+		root = transplant(root, z, y)
+		y.L = z.L
+		y.L.P = y
+		y.Red = z.Red
+	}
+
+	if !red {
+		root = eraseFixup(root, x)
+	}
+
+	return root
+}
+func eraseFixup(root, x *_Element) *_Element {
+	if x == _ElementNil {
+		return root
+	}
+	for x != root && !x.Red {
+		if x == x.P.L {
+			w := x.P.R
+			if w.Red { //case 1
+				w.Red = false
+				x.P.Red = true
+				root = leftRotate(root, x.P)
+				w = x.P.R
+
+			}
+
+			if !w.L.Red && !w.R.Red { //case2
+				w.Red = true
+				x = x.P
+			} else {
+				if !w.R.Red {
+					w.L.Red = false
+					w.Red = true
+					root = rightRotate(root, w)
+					w = x.P.R
+				}
+
+				w.Red = x.P.Red
+				x.P.Red = false
+				w.R.Red = false
+				root = leftRotate(root, x.P)
+				x = root
+			}
+		} else {
+			w := x.P.L
+
+			if w.Red { //case 1
+				w.Red = false
+				x.P.Red = true
+				root = rightRotate(root, x.P)
+				w = x.P.L
+
+			}
+
+			if !w.R.Red && !w.L.Red { //case2
+				w.Red = true
+				x = x.P
+			} else {
+				if !w.L.Red {
+					w.R.Red = false
+					w.Red = true
+					root = leftRotate(root, w)
+					w = x.P.L
+				}
+
+				w.Red = x.P.Red
+				x.P.Red = false
+				w.L.Red = false
+				root = rightRotate(root, x.P)
+				x = root
+			}
+		}
+	}
+	x.Red = false
+	return root
+}
+
+//查找節點
+func search(x *_Element, k IKey) *_Element {
+	for x != _ElementNil && !x.K.Equal(k) {
+		if k.Less(x.K) {
+			x = x.L
+		} else {
+			x = x.R
+		}
+	}
+	return x
+}
