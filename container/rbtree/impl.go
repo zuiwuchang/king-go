@@ -1,9 +1,5 @@
 package rbtree
 
-import (
-	"fmt"
-)
-
 //定義一個 樹 結構
 type _Element struct {
 	K IKey
@@ -96,14 +92,15 @@ func insert(root *_Element, k IKey, v IValue) (*_Element, bool) {
 	//當前 位置
 	x := root
 	for x != _ElementNil {
-		if x.K.Equal(k) {
+		compare := x.K.Compare(k)
+		if compare == 0 {
 			//已經存在key 直接替換
 			x.V = v
 			return root, false
 		}
 
 		y = x
-		if k.Less(x.K) {
+		if compare > 0 {
 			//比當前小 比對左子樹
 			x = x.L
 		} else {
@@ -116,7 +113,7 @@ func insert(root *_Element, k IKey, v IValue) (*_Element, bool) {
 	z.P = y
 	if y == _ElementNil { //設置新的 root
 		root = z
-	} else if k.Less(y.K) {
+	} else if k.Compare(y.K) < 0 {
 		y.L = z
 	} else {
 		y.R = z
@@ -302,16 +299,17 @@ func eraseFixup(root, x *_Element) *_Element {
 
 //查找節點
 func search(x *_Element, k IKey) *_Element {
-	for x != _ElementNil && !x.K.Equal(k) {
-		if k.Less(x.K) {
+	for x != _ElementNil {
+		compare := x.K.Compare(k)
+		if compare == 0 {
+			return x
+		}
+
+		if compare > 0 {
 			x = x.L
 		} else {
 			x = x.R
 		}
 	}
 	return x
-}
-
-func func_name() {
-	fmt.Println(123)
 }

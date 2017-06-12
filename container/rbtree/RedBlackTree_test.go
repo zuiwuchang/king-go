@@ -188,7 +188,7 @@ func TestErase(t *testing.T) {
 }
 func TestRand(t *testing.T) {
 	rand.Seed(time.Now().Unix())
-	for i := 0; i < 500; i++ {
+	for i := 0; i < 1024; i++ {
 		rand.Seed(int64(i))
 
 		m := New()
@@ -197,7 +197,7 @@ func TestRand(t *testing.T) {
 		for i := 0; i < count; i++ {
 			if rand.Int()%2 == 0 {
 				//insert
-				k := IKeyInt(rand.Int() % 1024 * 100)
+				k := IKeyInt(rand.Int() % 1024 * 1000)
 				sum := m.Len()
 				ele := m.Get(k)
 				m.Insert(k, i)
