@@ -29,7 +29,7 @@ func NewActionAlphaTo(alpha float64, duration time.Duration) *ActionAlphaTo {
 }
 
 //計算速度
-func (a *ActionAlphaTo) calculateSpeed(node Object) {
+func (a *ActionAlphaTo) calculateSpeed(node IObject) {
 	if a.speedOk {
 		return
 	}
@@ -42,7 +42,7 @@ func (a *ActionAlphaTo) calculateSpeed(node Object) {
 }
 
 //執行動作
-func (a *ActionAlphaTo) DoAction(node Object, duration time.Duration) {
+func (a *ActionAlphaTo) DoAction(node IObject, duration time.Duration) {
 	a.calculateSpeed(node)
 
 	//ok
@@ -78,7 +78,7 @@ func (a *ActionAlphaTo) Destory() {
 }
 
 //返回一個動作副本
-func (a *ActionAlphaTo) Clone() Action {
+func (a *ActionAlphaTo) Clone() IAction {
 	action := *a
 	action.speedOk = false
 	return &action

@@ -29,7 +29,7 @@ func NewActionMoveTo(x, y float64, duration time.Duration) *ActionMoveTo {
 }
 
 //計算速度
-func (a *ActionMoveTo) calculateSpeed(node Object) {
+func (a *ActionMoveTo) calculateSpeed(node IObject) {
 	if a.speedOk {
 		return
 	}
@@ -52,7 +52,7 @@ func (a *ActionMoveTo) calculateSpeed(node Object) {
 }
 
 //執行動作
-func (a *ActionMoveTo) DoAction(node Object, duration time.Duration) {
+func (a *ActionMoveTo) DoAction(node IObject, duration time.Duration) {
 	a.calculateSpeed(node)
 
 	n := float64(duration / time.Millisecond)
@@ -102,7 +102,7 @@ func (a *ActionMoveTo) Destory() {
 }
 
 //返回一個動作副本
-func (a *ActionMoveTo) Clone() Action {
+func (a *ActionMoveTo) Clone() IAction {
 	action := *a
 	action.speedOk = false
 	return &action

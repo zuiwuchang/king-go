@@ -27,10 +27,10 @@ const (
 )
 
 //ui事件 回調
-type UiCallBack func(ui UiObject, info interface{})
+type UiCallBack func(ui IUi, info interface{})
 
-type UiObject interface {
-	Object
+type IUi interface {
+	IObject
 	//設置 事件回調
 	SetEventCallback(evt string /*ui事件名*/, callback UiCallBack)
 	//返回 事件回調 函數

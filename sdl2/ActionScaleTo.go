@@ -32,7 +32,7 @@ func NewActionScaleTo(scaleX, scaleY float64, duration time.Duration) *ActionSca
 }
 
 //計算速度
-func (a *ActionScaleTo) calculateSpeed(node Object) {
+func (a *ActionScaleTo) calculateSpeed(node IObject) {
 	if a.speedOk {
 		return
 	}
@@ -53,7 +53,7 @@ func (a *ActionScaleTo) isOk(scaleX, scaleY float64) bool {
 }
 
 //執行動作
-func (a *ActionScaleTo) DoAction(node Object, duration time.Duration) {
+func (a *ActionScaleTo) DoAction(node IObject, duration time.Duration) {
 	a.calculateSpeed(node)
 
 	//ok
@@ -104,7 +104,7 @@ func (a *ActionScaleTo) Destory() {
 }
 
 //返回一個動作副本
-func (a *ActionScaleTo) Clone() Action {
+func (a *ActionScaleTo) Clone() IAction {
 	action := *a
 	action.speedOk = false
 	return &action

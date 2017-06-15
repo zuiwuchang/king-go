@@ -36,7 +36,7 @@ type Director struct {
 	mutex  sync.Mutex
 
 	//焦點 元素
-	focus Object
+	focus IObject
 }
 
 func (d *Director) pushEvent(evt interface{}) {
@@ -61,37 +61,37 @@ func (d *Director) pollEvent() sdl.Event {
 var g_director *Director
 
 //壓入 場景
-func PushScene(scene Object) {
+func PushScene(scene IObject) {
 	g_director.scenes.PushBack(scene)
 }
 
 //彈出 場景
-func PopScene() Object {
+func PopScene() IObject {
 	element := g_director.scenes.Back()
 	if element == nil {
 		return nil
 	}
 
-	scene := element.Value.(Object)
+	scene := element.Value.(IObject)
 	g_director.scenes.Remove(element)
 	return scene
 }
 
 //替換當前 場景
-func Replace(scene Object) Object {
+func Replace(scene IObject) IObject {
 	old := PopScene()
 	PushScene(scene)
 	return old
 }
 
 //返回當前 場景
-func GetScene() Object {
+func GetScene() IObject {
 	element := g_director.scenes.Back()
 	if element == nil {
 		return nil
 	}
 
-	return element.Value.(Object)
+	return element.Value.(IObject)
 }
 
 //初始化 引擎
@@ -131,7 +131,7 @@ func DestoryEngine() {
 	director := getDirector()
 
 	for element := director.scenes.Back(); element != nil; element = element.Prev() {
-		scene := element.Value.(Object)
+		scene := element.Value.(IObject)
 		scene.Destroy()
 	}
 
@@ -289,7 +289,7 @@ END:
 }
 
 //設置獲取焦點元素
-func SetFocus(obj Object) {
+func SetFocus(obj IObject) {
 	director := g_director
 	//元素已經得到焦點 無需額外操作
 	if obj == director.focus {

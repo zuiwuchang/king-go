@@ -11,7 +11,7 @@ const (
 )
 
 //基礎接口定義
-type Object interface {
+type IObject interface {
 	//繪製自己
 	Draw(renderer *sdl.Renderer, duration time.Duration)
 
@@ -67,28 +67,28 @@ type Object interface {
 	GetTag() string
 
 	//增加一個 子元素
-	Add(obj Object)
+	Add(obj IObject)
 	//將子元素 按z坐標排序
 	SortZ()
 	//增加一個 子元素 並按z坐標排序
-	AddSortZ(obj Object)
+	AddSortZ(obj IObject)
 
 	//刪除一個 子元素
-	Remove(obj Object)
+	Remove(obj IObject)
 	//刪除一個 指定id的 子元素
 	RemoveById(id string)
 	//刪除 指定 tag 的元素
 	RemoveByTag(tag string)
 
 	//返回 父節點
-	GetParent() Object
+	GetParent() IObject
 	//設置 父節點
-	SetParent(parent Object)
+	SetParent(parent IObject)
 
 	//綁定一個 動作 多次 bind 的 動作 同時被執行
-	BindAction(a Action)
+	BindAction(a IAction)
 	//移除一個 動作
-	RemoveAction(a Action)
+	RemoveAction(a IAction)
 
 	//設置紋理
 	SetTexture(texture *sdl.Texture)
@@ -149,13 +149,13 @@ type Node struct {
 	Flip sdl.RendererFlip
 
 	//子元素
-	childs []Object
+	childs []IObject
 
 	id  string
 	tag string
 
 	//父節點
-	parent Object
+	parent IObject
 
 	//是否不可見
 	hide bool
@@ -164,7 +164,7 @@ type Node struct {
 	Alpha float64
 
 	//動作集合
-	actions map[Action]bool
+	actions map[IAction]bool
 }
 
 func NewNode(x, y float64, z, w, h int, texture *sdl.Texture) *Node {
@@ -361,7 +361,7 @@ func (n *Node) OnEvent(evt sdl.Event) bool {
 		return false
 	}
 	//備份子節點 防止 在 OnEvent 中 改變子節點
-	childs := make([]Object, size, size)
+	childs := make([]IObject, size, size)
 	copy(childs, n.childs)
 
 	//詢問 子元素
@@ -396,7 +396,7 @@ func (n *Node) Destroy() {
 //初始化 子元素 slice
 func (n *Node) initChilds() {
 	if n.childs == nil {
-		n.childs = make([]Object, 0, BUFFER_INIT_COUNT)
+		n.childs = make([]IObject, 0, BUFFER_INIT_COUNT)
 	}
 }
 
@@ -421,7 +421,7 @@ func (n *Node) GetTag() string {
 }
 
 //增加一個 子元素
-func (n *Node) Add(obj Object) {
+func (n *Node) Add(obj IObject) {
 	//如果存在父節點 從父節點中刪除
 	parent := obj.GetParent()
 	if parent != nil {
@@ -434,7 +434,7 @@ func (n *Node) Add(obj Object) {
 	obj.SetParent(n)
 }
 
-type SortChilds []Object
+type SortChilds []IObject
 
 func (s SortChilds) Len() int {
 	return len(s)
@@ -452,13 +452,13 @@ func (n *Node) SortZ() {
 }
 
 //增加一個 子元素 並按z坐標排序
-func (n *Node) AddSortZ(obj Object) {
+func (n *Node) AddSortZ(obj IObject) {
 	n.Add(obj)
 	n.SortZ()
 }
 
 //刪除一個 子元素
-func (n *Node) Remove(obj Object) {
+func (n *Node) Remove(obj IObject) {
 	for i := 0; i < len(n.childs); i++ {
 		if n.childs[i] == obj {
 			obj.SetParent(nil)
@@ -494,25 +494,25 @@ func (n *Node) RemoveByTag(tag string) {
 }
 
 //返回 父節點
-func (n *Node) GetParent() Object {
+func (n *Node) GetParent() IObject {
 	return n.parent
 }
 
 //設置 父節點
-func (n *Node) SetParent(obj Object) {
+func (n *Node) SetParent(obj IObject) {
 	n.parent = obj
 }
 
 //綁定一個 動作 多次 bind 的 動作 同時被執行
-func (n *Node) BindAction(a Action) {
+func (n *Node) BindAction(a IAction) {
 	if n.actions == nil {
-		n.actions = make(map[Action]bool)
+		n.actions = make(map[IAction]bool)
 	}
 	n.actions[a] = true
 }
 
 //移除一個 動作
-func (n *Node) RemoveAction(a Action) {
+func (n *Node) RemoveAction(a IAction) {
 	if n.actions != nil {
 		delete(n.actions, a)
 	}

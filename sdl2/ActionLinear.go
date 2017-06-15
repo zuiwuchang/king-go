@@ -9,7 +9,7 @@ type actionLinearNode struct {
 	callback ActionCallBack
 	params   interface{}
 
-	action Action
+	action IAction
 }
 
 //將多個 action 線性執行
@@ -24,7 +24,7 @@ type ActionLinear struct {
 }
 
 //進入下個 action
-func actionLinearNext(node Object, _a Action, params interface{}) {
+func actionLinearNext(node IObject, _a IAction, params interface{}) {
 	al := params.(*ActionLinear)
 	a := al.actions[al.pos]
 	if a.callback != nil {
@@ -48,7 +48,7 @@ func actionLinearNext(node Object, _a Action, params interface{}) {
 }
 
 //執行動作
-func (a *ActionLinear) DoAction(node Object, duration time.Duration) {
+func (a *ActionLinear) DoAction(node IObject, duration time.Duration) {
 	//已經完成 所有 action size == 0
 	size := len(a.actions)
 	if a.pos >= size {
@@ -67,7 +67,7 @@ func (a *ActionLinear) DoAction(node Object, duration time.Duration) {
 }
 
 //創建線性動作
-func NewActionLinear(as ...Action) *ActionLinear {
+func NewActionLinear(as ...IAction) *ActionLinear {
 	rs := &ActionLinear{}
 
 	size := len(as)
@@ -103,9 +103,9 @@ func (a *ActionLinear) Destory() {
 }
 
 //返回一個動作副本
-func (a *ActionLinear) Clone() Action {
+func (a *ActionLinear) Clone() IAction {
 	size := len(a.actions)
-	as := make([]Action, size, size)
+	as := make([]IAction, size, size)
 	for i, node := range a.actions {
 		as[i] = node.action.Clone()
 		as[i].SetCallBack(node.callback, node.params)

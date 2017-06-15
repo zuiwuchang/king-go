@@ -36,7 +36,7 @@ func NewActionMovie(n int, duration time.Duration) *ActionMovie {
 }
 
 //執行動作
-func (a *ActionMovie) DoAction(node Object, duration time.Duration) {
+func (a *ActionMovie) DoAction(node IObject, duration time.Duration) {
 	a.calculateSpeed()
 
 	size := len(a.textures)
@@ -83,7 +83,7 @@ func (a *ActionMovie) Destory() {
 }
 
 //返回一個動作副本
-func (a *ActionMovie) Clone() Action {
+func (a *ActionMovie) Clone() IAction {
 	action := *a
 	action.pos = 0
 	action.texture = nil

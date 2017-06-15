@@ -18,7 +18,7 @@ type actionTogetherNode struct {
 	callback ActionCallBack
 	params   interface{}
 
-	action Action
+	action IAction
 
 	//工作狀態
 	status int
@@ -34,7 +34,7 @@ type ActionTogether struct {
 }
 
 //創建並行動作
-func NewActionTogether(as ...Action) *ActionTogether {
+func NewActionTogether(as ...IAction) *ActionTogether {
 	rs := &ActionTogether{}
 
 	size := len(as)
@@ -70,7 +70,7 @@ type actionTogetherOKParams struct {
 }
 
 //action 完成一個 週期
-func actionTogetherOk(node Object, _a Action, params interface{}) {
+func actionTogetherOk(node IObject, _a IAction, params interface{}) {
 	ps := params.(*actionTogetherOKParams)
 	at := ps.a
 	an := at.actions[ps.index]
@@ -86,7 +86,7 @@ func actionTogetherOk(node Object, _a Action, params interface{}) {
 }
 
 //執行動作
-func (a *ActionTogether) DoAction(node Object, duration time.Duration) {
+func (a *ActionTogether) DoAction(node IObject, duration time.Duration) {
 	ok := true
 	for _, togetherNode := range a.actions {
 		//fmt.Println(i, togetherNode.status)
@@ -133,9 +133,9 @@ func (a *ActionTogether) Destory() {
 }
 
 //返回一個動作副本
-func (a *ActionTogether) Clone() Action {
+func (a *ActionTogether) Clone() IAction {
 	size := len(a.actions)
-	as := make([]Action, size, size)
+	as := make([]IAction, size, size)
 	for i, node := range a.actions {
 		as[i] = node.action.Clone()
 		as[i].SetCallBack(node.callback, node.params)

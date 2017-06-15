@@ -6,12 +6,12 @@ import (
 )
 
 //動作執行完一個週期後的 回調
-type ActionCallBack func(node Object, a Action, params interface{})
+type ActionCallBack func(node IObject, a IAction, params interface{})
 
 //施加到 演員的 動作定義
-type Action interface {
+type IAction interface {
 	//執行動作
-	DoAction(node Object, duration time.Duration)
+	DoAction(node IObject, duration time.Duration)
 	//釋放 動作
 	Destroy()
 	//是否自動 釋放
@@ -19,7 +19,7 @@ type Action interface {
 	GetAutoDestroy() bool
 	SetAutoDestory(yes bool)
 	//返回一個動作副本
-	Clone() Action
+	Clone() IAction
 
 	//設置 action 完成 通知
 	SetCallBack(callback ActionCallBack, params interface{})
