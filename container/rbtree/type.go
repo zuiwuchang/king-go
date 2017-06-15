@@ -16,4 +16,6 @@ type IElement interface {
 	Key() IKey
 	//返回 value
 	Value() IValue
+	//設置 value
+	SetValue(v interface{})
 }

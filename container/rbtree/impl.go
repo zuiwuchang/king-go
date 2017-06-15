@@ -27,6 +27,9 @@ func (ele *_Element) Key() IKey {
 func (ele *_Element) Value() IValue {
 	return ele.V
 }
+func (ele *_Element) SetValue(v interface{}) {
+	ele.V = v
+}
 
 //左旋轉
 func leftRotate(root, x *_Element) *_Element {
