@@ -76,6 +76,9 @@ type IObject interface {
 	//刪除 指定 tag 的元素
 	RemoveByTag(tag string)
 
+	//返回 子元素 數量
+	LenChilds() int
+
 	//返回 父節點
 	GetParent() IObject
 	//設置 父節點
@@ -145,7 +148,8 @@ type Node struct {
 	Flip sdl.RendererFlip
 
 	//子元素
-	childs *rbtree.RedBlackTree
+	childs    *rbtree.RedBlackTree
+	lenChilds int
 
 	id  string
 	tag string
@@ -175,6 +179,11 @@ func NewNode(x, y float64, z, w, h int, texture *sdl.Texture) *Node {
 		Texture: texture,
 		Alpha:   255,
 	}
+}
+
+//返回 子節點數量
+func (n *Node) LenChilds() int {
+	return n.lenChilds
 }
 
 //是否可見
@@ -373,26 +382,23 @@ func (n *Node) OnAction(duration time.Duration) {
 
 //處理 事件 返回 true 停止事件傳遞
 func (n *Node) OnEvent(evt sdl.Event) bool {
-	if n.childs == nil {
-		return false
-	}
-	size := n.childs.Len()
+	size := n.LenChilds()
 	if size == 0 {
 		return false
 	}
 	//備份子節點 防止 在 OnEvent 中 改變子節點
-	childs := make([]IObject, 0, size)
-
+	childs := make([]IObject, size, size)
+	index := 0
 	n.childs.Do(func(ele rbtree.IElement) bool {
 		arrs := ele.Value().([]IObject)
 		for i := 0; i < len(arrs); i++ {
-			childs = append(childs, arrs[i])
+			childs[index] = arrs[i]
+			index++
 		}
 		return true
 	})
 
 	//詢問 子元素
-	size = len(childs)
 	for i := size - 1; i > -1; i-- {
 		if childs[i].IsVisible() &&
 			childs[i].OnEvent(evt) {
@@ -468,13 +474,18 @@ func (n *Node) Add(obj IObject) {
 	ele := t.Get(rbtree.IKeyInt(z))
 	var arrs []IObject
 	if ele == nil {
-		arrs = make([]IObject, 0, BUFFER_INIT_COUNT)
+		arrs = make([]IObject, 1, BUFFER_INIT_COUNT)
+		arrs[0] = obj
+		t.Insert(rbtree.IKeyInt(z), arrs)
 	} else {
 		arrs = ele.Value().([]IObject)
+		arrs = append(arrs, obj)
+		ele.SetValue(arrs)
 	}
-	arrs = append(arrs, obj)
-	t.Insert(rbtree.IKeyInt(z), arrs)
 	obj.SetParent(n)
+
+	n.lenChilds++
+
 }
 
 //刪除一個 子元素
@@ -491,6 +502,8 @@ func (n *Node) Remove(obj IObject) {
 				} else {
 					ele.SetValue(arrs)
 				}
+
+				n.lenChilds--
 				return false
 			}
 		}
@@ -511,6 +524,8 @@ func (n *Node) RemoveById(id string) {
 				} else {
 					ele.SetValue(arrs)
 				}
+
+				n.lenChilds--
 				return false
 			}
 		}
@@ -532,6 +547,8 @@ func (n *Node) RemoveByTag(tag string) {
 				} else {
 					ele.SetValue(arrs)
 				}
+
+				n.lenChilds--
 				return false
 			}
 		}
@@ -544,7 +561,8 @@ func (n *Node) GetParent() IObject {
 	return n.parent
 }
 
-//設置 父節點
+//設置 父節點 不要調用 此函數 除非你的確知道在做什麼
+//要 添加子節點 調用 父節點的 Add 方法
 func (n *Node) SetParent(obj IObject) {
 	n.parent = obj
 }
