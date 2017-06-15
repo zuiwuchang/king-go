@@ -2,6 +2,7 @@ package sdl2
 
 import (
 	"github.com/veandco/go-sdl2/sdl"
+	"king-go/container/rbtree"
 )
 
 //對話框
@@ -85,11 +86,16 @@ func (u *UiDialog) doMove(x, y int32) {
 }
 func (u *UiDialog) OnEvent(evt sdl.Event) bool {
 	//詢問 子元素
-	for i := len(u.childs) - 1; i > -1; i-- {
-		if u.childs[i].IsVisible() && u.childs[i].OnEvent(evt) {
-			return true
+	u.childs.Do(func(ele rbtree.IElement) bool {
+		arrs := ele.Value().([]IObject)
+		for i := 0; i < len(arrs); i++ {
+			if arrs[i].IsVisible() && arrs[i].OnEvent(evt) {
+				return true
+			}
 		}
-	}
+		return true
+	})
+
 	ok := u.isModel
 
 	switch t := evt.(type) {

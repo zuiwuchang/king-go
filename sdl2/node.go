@@ -2,7 +2,7 @@ package sdl2
 
 import (
 	"github.com/veandco/go-sdl2/sdl"
-	"sort"
+	"king-go/container/rbtree"
 	"time"
 )
 
@@ -49,9 +49,9 @@ type IObject interface {
 	GetZ() int
 	//返回 z 坐標
 	SetZ(z int)
-	//返回 子節點中的 最大 z 坐標 必須要sort後才會返回 正確值
+	//返回 子節點中的 最大 z 坐標
 	GetMaxZ() int
-	//返回 子節點中的 最小 z 坐標 必須要sort後才會返回 正確值
+	//返回 子節點中的 最小 z 坐標
 	GetMinZ() int
 
 	//銷毀 元素
@@ -68,10 +68,6 @@ type IObject interface {
 
 	//增加一個 子元素
 	Add(obj IObject)
-	//將子元素 按z坐標排序
-	SortZ()
-	//增加一個 子元素 並按z坐標排序
-	AddSortZ(obj IObject)
 
 	//刪除一個 子元素
 	Remove(obj IObject)
@@ -149,7 +145,7 @@ type Node struct {
 	Flip sdl.RendererFlip
 
 	//子元素
-	childs []IObject
+	childs *rbtree.RedBlackTree
 
 	id  string
 	tag string
@@ -246,25 +242,34 @@ func (n *Node) GetZ() int {
 
 //返回 z 坐標
 func (n *Node) SetZ(z int) {
+	if n.Z == z {
+		return
+	}
 	n.Z = z
+	p := n.parent
+	if p == nil {
+		return
+	}
+	p.Remove(n)
+	p.Add(n)
 }
 
-//返回 子節點中的 最大 z 坐標 必須要sort後才會返回 正確值
+//返回 子節點中的 最大 z 坐標
 func (n *Node) GetMaxZ() int {
-	size := len(n.childs)
-	if size == 0 {
+	ele := n.childs.Max()
+	if ele == nil {
 		return 0
 	}
-	return n.childs[size-1].GetZ()
+	return int(ele.Key().(rbtree.IKeyInt))
 }
 
-//返回 子節點中的 最小 z 坐標 必須要sort後才會返回 正確值
+//返回 子節點中的 最小 z 坐標
 func (n *Node) GetMinZ() int {
-	size := len(n.childs)
-	if size == 0 {
+	ele := n.childs.Min()
+	if ele == nil {
 		return 0
 	}
-	return n.childs[0].GetZ()
+	return int(ele.Key().(rbtree.IKeyInt))
 }
 
 //繪製自己
@@ -277,8 +282,14 @@ func (n *Node) Draw(renderer *sdl.Renderer, duration time.Duration) {
 	//繪製自己
 	n.draw(renderer, duration)
 	//繪製子元素
-	for i := 0; i < len(n.childs); i++ {
-		n.childs[i].Draw(renderer, duration)
+	if n.childs != nil {
+		n.childs.Do(func(ele rbtree.IElement) bool {
+			arrs := ele.Value().([]IObject)
+			for i := 0; i < len(arrs); i++ {
+				arrs[i].Draw(renderer, duration)
+			}
+			return true
+		})
 	}
 }
 func (n *Node) GetDrawScale() (float64, float64) {
@@ -349,22 +360,39 @@ func (n *Node) OnAction(duration time.Duration) {
 	}
 
 	//執行動作
-	for i := 0; i < len(n.childs); i++ {
-		n.childs[i].OnAction(duration)
+	if n.childs != nil {
+		n.childs.Do(func(ele rbtree.IElement) bool {
+			arrs := ele.Value().([]IObject)
+			for i := 0; i < len(arrs); i++ {
+				arrs[i].OnAction(duration)
+			}
+			return true
+		})
 	}
 }
 
 //處理 事件 返回 true 停止事件傳遞
 func (n *Node) OnEvent(evt sdl.Event) bool {
-	size := len(n.childs)
+	if n.childs == nil {
+		return false
+	}
+	size := n.childs.Len()
 	if size == 0 {
 		return false
 	}
 	//備份子節點 防止 在 OnEvent 中 改變子節點
-	childs := make([]IObject, size, size)
-	copy(childs, n.childs)
+	childs := make([]IObject, 0, size)
+
+	n.childs.Do(func(ele rbtree.IElement) bool {
+		arrs := ele.Value().([]IObject)
+		for i := 0; i < len(arrs); i++ {
+			childs = append(childs, arrs[i])
+		}
+		return true
+	})
 
 	//詢問 子元素
+	size = len(childs)
 	for i := size - 1; i > -1; i-- {
 		if childs[i].IsVisible() &&
 			childs[i].OnEvent(evt) {
@@ -377,10 +405,14 @@ func (n *Node) OnEvent(evt sdl.Event) bool {
 //銷毀 元素
 func (n *Node) Destroy() {
 	if n.childs != nil {
-		for i := 0; i < len(n.childs); i++ {
-			n.childs[i].Destroy()
-		}
-		n.childs = nil
+		n.childs.Do(func(ele rbtree.IElement) bool {
+			arrs := ele.Value().([]IObject)
+			for i := 0; i < len(arrs); i++ {
+				arrs[i].Destroy()
+			}
+			return true
+		})
+		n.childs.Reset()
 	}
 
 	if n.actions != nil {
@@ -396,7 +428,7 @@ func (n *Node) Destroy() {
 //初始化 子元素 slice
 func (n *Node) initChilds() {
 	if n.childs == nil {
-		n.childs = make([]IObject, 0, BUFFER_INIT_COUNT)
+		n.childs = rbtree.New()
 	}
 }
 
@@ -430,67 +462,81 @@ func (n *Node) Add(obj IObject) {
 
 	//添加到當前節點
 	n.initChilds()
-	n.childs = append(n.childs, obj)
+
+	t := n.childs
+	z := obj.GetZ()
+	ele := t.Get(rbtree.IKeyInt(z))
+	var arrs []IObject
+	if ele == nil {
+		arrs = make([]IObject, 0, BUFFER_INIT_COUNT)
+	} else {
+		arrs = ele.Value().([]IObject)
+	}
+	arrs = append(arrs, obj)
+	t.Insert(rbtree.IKeyInt(z), arrs)
 	obj.SetParent(n)
-}
-
-type SortChilds []IObject
-
-func (s SortChilds) Len() int {
-	return len(s)
-}
-func (s SortChilds) Less(i, j int) bool {
-	return s[i].GetZ() < s[j].GetZ()
-}
-func (s SortChilds) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-//將子元素 按z坐標排序
-func (n *Node) SortZ() {
-	sort.Sort(SortChilds(n.childs))
-}
-
-//增加一個 子元素 並按z坐標排序
-func (n *Node) AddSortZ(obj IObject) {
-	n.Add(obj)
-	n.SortZ()
 }
 
 //刪除一個 子元素
 func (n *Node) Remove(obj IObject) {
-	for i := 0; i < len(n.childs); i++ {
-		if n.childs[i] == obj {
-			obj.SetParent(nil)
+	n.childs.Do(func(ele rbtree.IElement) bool {
+		arrs := ele.Value().([]IObject)
+		for i := 0; i < len(arrs); i++ {
+			if arrs[i] == obj {
+				arrs = append(arrs[:i], arrs[i+1:]...)
 
-			n.childs = append(n.childs[:i], n.childs[i+1:]...)
-			break
+				arrs = append(arrs[:i], arrs[i+1:]...)
+				if len(arrs) == 0 {
+					n.childs.Erase(ele)
+				} else {
+					ele.SetValue(arrs)
+				}
+				return false
+			}
 		}
-	}
+		return true
+	})
 }
 
 //刪除一個 指定id的 子元素
 func (n *Node) RemoveById(id string) {
-	for i := 0; i < len(n.childs); i++ {
-		if n.childs[i].GetId() == id {
-			n.childs[i].SetParent(nil)
+	n.childs.Do(func(ele rbtree.IElement) bool {
+		arrs := ele.Value().([]IObject)
+		for i := 0; i < len(arrs); i++ {
+			if arrs[i].GetId() == id {
+				arrs = append(arrs[:i], arrs[i+1:]...)
 
-			n.childs = append(n.childs[:i], n.childs[i+1:]...)
-			break
+				if len(arrs) == 0 {
+					n.childs.Erase(ele)
+				} else {
+					ele.SetValue(arrs)
+				}
+				return false
+			}
 		}
-	}
+		return true
+	})
 }
 
 //刪除 指定 tag 的元素
 func (n *Node) RemoveByTag(tag string) {
-	for i := 0; i < len(n.childs); i++ {
-		if n.childs[i].GetTag() == tag {
-			n.childs[i].SetParent(nil)
+	n.childs.Do(func(ele rbtree.IElement) bool {
+		arrs := ele.Value().([]IObject)
+		for i := 0; i < len(arrs); i++ {
+			if arrs[i].GetTag() == tag {
+				arrs[i].SetParent(nil)
 
-			n.childs = append(n.childs[:i], n.childs[i+1:]...)
-			break
+				arrs = append(arrs[:i], arrs[i+1:]...)
+				if len(arrs) == 0 {
+					n.childs.Erase(ele)
+				} else {
+					ele.SetValue(arrs)
+				}
+				return false
+			}
 		}
-	}
+		return true
+	})
 }
 
 //返回 父節點
