@@ -158,16 +158,16 @@ func TestErase(t *testing.T) {
 		}
 	}
 
-	m.Erase(IKeyInt(count))
+	m.EraseByKey(IKeyInt(count))
 	if m.length != count {
 		t.Fatal("erase bad key")
 	}
 	key := IKeyInt(10)
-	m.Erase(key)
+	m.EraseByKey(key)
 	if m.length != count-1 {
 		t.Fatal("erase bad key")
 	}
-	m.Erase(key)
+	m.EraseByKey(key)
 	if m.length != count-1 {
 		t.Fatal("erase bad key")
 	}
@@ -176,7 +176,7 @@ func TestErase(t *testing.T) {
 	}
 	length := m.length
 	for i := 0; i < count/2; i++ {
-		m.Erase(IKeyInt(i))
+		m.EraseByKey(IKeyInt(i))
 		if i != 10 {
 			length--
 		}
@@ -216,7 +216,7 @@ func TestRand(t *testing.T) {
 				k := IKeyInt(rand.Int() % 1024 * 100)
 				sum := m.Len()
 				ele := m.Get(k)
-				m.Erase(k)
+				m.EraseByKey(k)
 				if ele == nil {
 					if sum != m.Len() {
 						t.Fatal("bad erase")

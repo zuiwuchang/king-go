@@ -120,7 +120,7 @@ func (r *RedBlackTree) GetValue(k IKey) IValue {
 }
 
 //刪除 指定 節點
-func (r *RedBlackTree) Erase(k IKey) {
+func (r *RedBlackTree) EraseByKey(k IKey) {
 	if k == nil {
 		return
 	}
@@ -131,4 +131,21 @@ func (r *RedBlackTree) Erase(k IKey) {
 	}
 	r.length--
 	r.root = erase(r.root, x)
+}
+
+//刪除 指定 節點
+func (r *RedBlackTree) Erase(ele IElement) {
+	if ele == nil || ele == _ElementNil {
+		return
+	}
+	//節點已失效
+	node := ele.(*_Element)
+	if (node.P != _ElementNil && node.P.L != node && node.P.R != node) ||
+		(node.L != _ElementNil && node.L.P != node) ||
+		(node.R != _ElementNil && node.R.P != node) {
+		return
+	}
+
+	r.length--
+	r.root = erase(r.root, node)
 }
