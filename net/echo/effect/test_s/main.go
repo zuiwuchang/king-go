@@ -23,8 +23,8 @@ type Server struct {
 func (s *Server) GetHeaderSize() int {
 	return s.impl.GetHeaderSize()
 }
-func (s *Server) GetMessageSize(header []byte) (n int, e error) {
-	return s.impl.GetMessageSize(header)
+func (s *Server) GetMessageSize(session echo.Session, header []byte) (n int, e error) {
+	return s.impl.GetMessageSize(session, header)
 }
 func (s *Server) NewSession(c net.Conn) (session echo.Session, e error) {
 	//fmt.Println("one in :", c.RemoteAddr())

@@ -166,7 +166,7 @@ func (s *server) read(c net.Conn) {
 					break
 				}
 				buf := buffer.Bytes()
-				size, e = template.GetMessageSize(buf[:headerSize])
+				size, e = template.GetMessageSize(session, buf[:headerSize])
 				if e != nil || size < headerSize {
 					//錯誤的 消息
 					return

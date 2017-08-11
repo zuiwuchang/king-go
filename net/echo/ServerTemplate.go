@@ -18,7 +18,7 @@ type IServerTemplate interface {
 	GetHeaderSize() int
 	//傳入 header 返回 整個消息長
 	//如果 e != nil 或 消息長 小於 headerSize 將斷開連接
-	GetMessageSize(header []byte) (n int, e error)
+	GetMessageSize(session Session, header []byte) (n int, e error)
 
 	//如何 創建 session 連接成功時 自動回調
 	//如果 e != nil 將斷開連接
@@ -48,7 +48,7 @@ type serverTemplate struct {
 func (s *serverTemplate) GetHeaderSize() int {
 	return _HeaderSize
 }
-func (s *serverTemplate) GetMessageSize(b []byte) (int, error) {
+func (s *serverTemplate) GetMessageSize(session Session, b []byte) (int, error) {
 	if len(b) != _HeaderSize {
 		return 0, errors.New("header size not match")
 	}
