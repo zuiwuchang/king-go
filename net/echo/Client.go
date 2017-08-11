@@ -19,6 +19,8 @@ type IClient interface {
 type client struct {
 	net.Conn
 	template IClientTemplate
+	buffer   *bytes.Buffer
+	size     int
 }
 
 //創建一個 echo 客戶端
@@ -28,65 +30,80 @@ func NewClient(addr string, template IClientTemplate) (IClient, error) {
 		return nil, e
 	}
 
-	return &client{conn, template}, nil
+	return &client{conn, template, &bytes.Buffer{}, -1}, nil
 }
 
 func (c *client) GetMessage(timeout time.Duration) ([]byte, error) {
-	template := c.template
-
-	var buffer bytes.Buffer
 	b := make([]byte, 1024)
-	size := -1
-	headerSize := template.GetHeaderSize()
 	var timer *time.Timer
 	for {
+		if c.buffer.Len() > 0 {
+			if b, e := c.getMessage(); e != nil {
+				return nil, e
+			} else if b != nil {
+				return b, nil
+			}
+		}
+
 		if timeout != 0 {
 			timer = time.AfterFunc(timeout, func() {
 				c.Close()
 			})
 		}
+
 		n, e := c.Read(b)
 		if timer != nil {
 			timer.Stop()
 		}
-		if e != nil {
-			return nil, e
-		}
-		_, e = buffer.Write(b[:n])
+
 		if e != nil {
 			return nil, e
 		}
 
-		for {
-			//讀取 header
-			if size == -1 {
-				if buffer.Len() < headerSize {
-					//等待 header
-					break
-				}
-				buf := buffer.Bytes()
-				size, e = template.GetMessageSize(buf[:headerSize])
-				if e != nil || size < headerSize {
-					//錯誤的 消息
-					return nil, errors.New("message size not match")
-				}
-			}
+		_, e = c.buffer.Write(b[:n])
+		if e != nil {
+			return nil, e
+		}
 
-			//讀取body
-			if buffer.Len() < size {
-				//等待 body
+	}
+	return nil, nil
+}
+func (c *client) getMessage() ([]byte, error) {
+	template := c.template
+	headerSize := template.GetHeaderSize()
+	buffer := c.buffer
+	var e error
+	for {
+		//讀取 header
+		if c.size == -1 {
+			if buffer.Len() < headerSize {
+				//等待 header
 				break
 			}
-			buf := make([]byte, size)
-			_, e = buffer.Read(buf)
-			if e != nil {
-				//讀取錯誤
-				return nil, e
+			buf := buffer.Bytes()
+			c.size, e = template.GetMessageSize(buf[:headerSize])
+			if e != nil || c.size < headerSize {
+				//錯誤的 消息
+				return nil, errors.New("message size not match")
 			}
 
-			//返回消息
-			return buf, nil
 		}
+
+		//讀取body
+		if buffer.Len() < c.size {
+			//等待 body
+			break
+		}
+		buf := make([]byte, c.size)
+		_, e = buffer.Read(buf)
+		if e != nil {
+			//讀取錯誤
+			return nil, e
+		}
+
+		//返回消息
+		c.size = -1
+		return buf, nil
 	}
 	return nil, nil
 }
