@@ -70,10 +70,17 @@ func NewServer(laddr string, timeout time.Duration, template IServerTemplate) (I
 	return s, nil
 }
 func (s *server) runController() {
+	defer func() {
+		if s.listener != nil {
+			s.listener.Close()
+		}
+	}()
 	for {
 		select {
 		case cmd := <-s.cmd:
-			s.runCommand(cmd)
+			if s.runCommand(cmd) {
+				return
+			}
 		case c := <-s.signalIn:
 			s.clients[c] = 1
 		case c := <-s.signalOut:
@@ -81,18 +88,20 @@ func (s *server) runController() {
 		}
 	}
 }
-func (s *server) runCommand(cmd int) {
+
+//返回是否 結束
+func (s *server) runCommand(cmd int) bool {
 	switch cmd {
 	case cmdRun:
 		if s.run { //已經運行 直接返回
-			return
+			return false
 		}
 
 		s.run = true
 		go s.accept()
 	case cmdClose:
 		if !s.run { //未運行 直接返回
-			return
+			return true
 		}
 
 		s.run = false
@@ -102,7 +111,9 @@ func (s *server) runCommand(cmd int) {
 			c.Close()
 		}
 		s.clients = nil
+		return true
 	}
+	return false
 }
 func (s *server) accept() {
 	l := s.listener
