@@ -32,9 +32,39 @@ type K3XsxSalt struct {
 	Salt byte
 }
 
+//返回 鹽長度
 func (k *K3XsxSalt) SaltLen() int {
 	return 3
 }
+
+//返回 加密後 密文長度
+func (k *K3XsxSalt) EncryptionLen(srcLen int) int {
+	return srcLen + k.SaltLen()
+}
+
+//返回 解密後 密文長度
+func (k *K3XsxSalt) DecryptionLen(srcLen int) int {
+	return srcLen - k.SaltLen()
+}
+
+//加密
+func (k *K3XsxSalt) EncryptionEx(src []byte, dist []byte) error {
+	n := len(src)
+	if k.EncryptionLen(len(src)) > len(dist) {
+		return errors.New("dist buffer is too small,use EncryptionLen(len(src) get dist buffer len")
+	}
+	saltLen := k.SaltLen()
+	_, err := rand.Read(dist[0:saltLen])
+	if err != nil {
+		return err
+	}
+	for i := 0; i < n; i++ {
+		dist[saltLen+i] = k.encryption(src[i], dist[:saltLen])
+	}
+	return nil
+}
+
+//加密
 func (k *K3XsxSalt) Encryption(b []byte) ([]byte, error) {
 	n := len(b)
 	saltLen := k.SaltLen()
@@ -49,6 +79,26 @@ func (k *K3XsxSalt) Encryption(b []byte) ([]byte, error) {
 	}
 	return out, nil
 }
+
+//解密
+func (k *K3XsxSalt) DecryptionEx(src []byte, dist []byte) error {
+	n := len(src)
+	if n < 3 {
+		return errors.New("not encryption data")
+	}
+	if k.DecryptionLen(len(src)) > len(dist) {
+		return errors.New("dist buffer is too small,use EncryptionLen(len(src) get dist buffer len")
+	}
+
+	saltLen := k.SaltLen()
+	n -= saltLen
+	for i := 0; i < n; i++ {
+		dist[i] = k.decryption(src[i+saltLen], src[:saltLen])
+	}
+	return nil
+}
+
+//解密
 func (k *K3XsxSalt) Decryption(b []byte) ([]byte, error) {
 	n := len(b)
 	if n < 3 {
