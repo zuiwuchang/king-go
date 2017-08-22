@@ -21,7 +21,7 @@ const (
 )
 
 //將時間字符串 轉換到 Duration
-//1Hour2Minte
+//1Hour2Minute
 func ToDuration(str string) (time.Duration, error) {
 	var duration time.Duration
 
