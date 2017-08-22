@@ -1,8 +1,7 @@
-//tcp 實現的 echo 服務器 客戶端
-package echo
+//tcp 服務器 客戶端
+package basic
 
 import (
-	"bytes"
 	"net"
 	"time"
 )
@@ -146,10 +145,7 @@ func (s *server) read(c net.Conn) {
 		s.signalOut <- c
 	}()
 
-	var buffer bytes.Buffer
 	b := make([]byte, 1024)
-	size := -1
-	headerSize := template.GetHeaderSize()
 	var timer *time.Timer
 	for {
 		if s.timeout != 0 {
@@ -164,46 +160,12 @@ func (s *server) read(c net.Conn) {
 		if e != nil {
 			return
 		}
-		_, e = buffer.Write(b[:n])
+
+		//通知 處理消息
+		e = template.Message(c, session, b[:n])
 		if e != nil {
+			//斷開連接
 			return
-		}
-
-		for {
-			//讀取 header
-			if size == -1 {
-				if buffer.Len() < headerSize {
-					//等待 header
-					break
-				}
-				buf := buffer.Bytes()
-				size, e = template.GetMessageSize(session, buf[:headerSize])
-				if e != nil || size < headerSize {
-					//錯誤的 消息
-					return
-				}
-			}
-
-			//讀取body
-			if buffer.Len() < size {
-				//等待 body
-				break
-			}
-			buf := make([]byte, size)
-			_, e = buffer.Read(buf)
-			if e != nil {
-				//讀取錯誤
-				return
-			}
-			//通知 處理消息
-			e = template.Message(c, session, buf)
-			if e != nil {
-				//斷開連接
-				return
-			}
-
-			//重置 消息 解析狀態
-			size = -1
 		}
 	}
 }
