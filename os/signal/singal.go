@@ -5,13 +5,16 @@ package signal
 //#include <signal.h>
 //extern void _king_go_os_signal_goHandler(int);
 /*
+#if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
 void _king_go_os_signal_handler(int sig)
 {
 	_king_go_os_signal_goHandler(sig);
 	signal(sig,_king_go_os_signal_handler);
 }
+#endif
 void _king_go_os_signal_signals()
 {
+#if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
 	//註冊 信號處理函數
 	signal(SIGINT,_king_go_os_signal_handler);		//通常是 ctrl + c
 	signal(SIGILL,_king_go_os_signal_handler);
@@ -20,6 +23,7 @@ void _king_go_os_signal_signals()
 	signal(SIGTERM,_king_go_os_signal_handler);	//軟體退出 kill
 	signal(SIGBREAK,_king_go_os_signal_handler);	//通常是 ctrl + break/pause /點擊了控制檯窗口的 關閉按鈕
 	signal(SIGABRT,_king_go_os_signal_handler);	//調用了 abort 函數
+#endif
 }
 */
 import "C"
