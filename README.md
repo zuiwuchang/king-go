@@ -2,7 +2,7 @@
 孤實現的一些 go 組件
 
 # 安裝
-go get github.com/zuiwuchang/king-go
+go get -u github.com/zuiwuchang/king-go
 
 # tcp 相關
  1. [king-go/net/basic](https://github.com/zuiwuchang/king-go/tree/master/net/basic) tcp 服務器
