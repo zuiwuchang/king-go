@@ -15,18 +15,23 @@ type IPoolTemplate interface {
 	Ping(*Conn) error
 
 	//連接池 中的連接 多久自動執行一次 ping
-	//如果 返回 0 將不會執行ping
+	//返回 0 將不會執行ping
+	//返回值 必須 恆定
 	PingInterval() time.Duration
-
-	//返回 連接池 最少連接數
-	//初始化時 會創建 min個 連接 (如果 min 大於0的話)
-	MinConn() int
 
 	//多久 未活動的 連接 會被 釋放
 	Timeout() time.Duration
 
-	//連接池 執行釋放 操作 的最小 執行週期
-	MinFreeInterval() time.Duration
-	//連接池 多久執行一次自動 縮容
-	FreeInterval() time.Duration
+	//連接池 執行縮擴容 操作 的最小 執行週期
+	MinInterval() time.Duration
+	//連接池 多久執行一次自動 縮擴容
+	//返回 0 不執行
+	//返回值 必須 恆定
+	Interval() time.Duration
+
+	//是否需要 縮擴容
+	//返回 0 不需要擴容
+	//返回 >0 擴容 |n|
+	//返回 <0 縮容 |n|
+	Resize(use /*已被get使用的 連接數*/, free /*未被使用的 連接數*/ int) int
 }

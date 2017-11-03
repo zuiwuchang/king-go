@@ -5,10 +5,17 @@ import (
 	"time"
 )
 
+const (
+	_StatusIdle   = 0 //空閒
+	_StatusGet    = 1 //已經被用戶 使用
+	_StatusPing   = 2 //正在執行 ping
+	_StatusClose  = 3 //請求關閉socket
+	_StatusClosed = 4 //socket已關閉
+
+)
+
 //包裝的 net.Conn
 type Conn struct {
-	//連接是否正常
-	ok bool
 	//tcp連接
 	c net.Conn
 	//最後工作時間
@@ -18,16 +25,19 @@ type Conn struct {
 
 	//執行 ping 的 timer
 	timer *time.Timer
+
+	//當前狀態
+	status int
 }
 
 //創建 一個 conn
 func newConn(c net.Conn) *Conn {
 	now := time.Now()
 	return &Conn{
-		ok:       true,
 		c:        c,
 		lastWork: now,
 		lastPut:  now,
+		status:   _StatusIdle,
 	}
 }
 
@@ -38,6 +48,7 @@ func (c *Conn) Get() net.Conn {
 
 //關閉連接 釋放 所有資源
 func (c *Conn) free(t IPoolTemplate) {
+	c.status = _StatusClosed
 	t.Close(c.c)
 }
 
@@ -59,7 +70,7 @@ func (c *Conn) Write(b []byte) (n int, err error) {
 }
 
 func (c *Conn) Close() error {
-	c.ok = false
+	c.status = _StatusClose
 	return nil
 }
 func (c *Conn) LocalAddr() net.Addr {

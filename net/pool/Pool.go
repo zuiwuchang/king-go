@@ -19,20 +19,23 @@ type IPool interface {
 }
 
 //創建一個 連接池
-func NewPool(t IPoolTemplate) (IPool, error) {
-	min := t.MinConn()
+//sum 初始連接 數量
+func NewPool(t IPoolTemplate, sum int) (IPool, error) {
 	l := list.New()
-	if min > 0 {
+	if sum > 0 {
+		//創建 連接
 		var e error
 		var c net.Conn
-		for i := 0; i < min; i++ {
+		for i := 0; i < sum; i++ {
 			c, e = t.Conect()
 			if e != nil {
 				break
 			}
 			l.PushBack(newConn(c))
 		}
+
 		if e != nil {
+			//出錯 釋放 連接
 			for iter := l.Front(); iter != nil; iter = iter.Next() {
 				iter.Value.(*Conn).free(t)
 			}
@@ -40,13 +43,30 @@ func NewPool(t IPoolTemplate) (IPool, error) {
 		}
 	}
 
+	impl := &poolImpl{
+		run:        true,
+		t:          t,
+		l:          l,
+		lastResize: time.Now(),
+		use:        0,
+		resizing:   false,
+	}
+
 	//啓動 定時 縮容
-	//****
-	return &poolImpl{
-			run:      true,
-			t:        t,
-			l:        l,
-			lastFree: time.Now(),
-		},
-		nil
+	d := t.Interval()
+	if d > 0 {
+		impl.timer = time.AfterFunc(0, func() {
+			impl.resizeTimer()
+		})
+	}
+
+	//啓用 ping
+	d = t.PingInterval()
+	if d > 0 {
+		for iter := l.Front(); iter != nil; iter = iter.Next() {
+			c := iter.Value.(*Conn)
+			impl.executePing(c, d)
+		}
+	}
+	return impl, nil
 }
