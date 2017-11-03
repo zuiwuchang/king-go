@@ -10,9 +10,9 @@ import (
 //連接池 接口
 type IPool interface {
 	//從 連接池 中 獲取一個連接
-	Get() (net.Conn, error)
+	Get() (*Conn, error)
 	//將 連接 返回給 連接池
-	Put(net.Conn)
+	Put(*Conn)
 
 	//釋放 連接池 所有資源 此後 連接池不能再被使用
 	Close()
@@ -31,7 +31,7 @@ func NewPool(t IPoolTemplate, sum int) (IPool, error) {
 			if e != nil {
 				break
 			}
-			l.PushBack(newConn(c))
+			l.PushBack(newConn(c, _StatusIdle))
 		}
 
 		if e != nil {

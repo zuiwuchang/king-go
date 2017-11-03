@@ -2,7 +2,6 @@ package pool
 
 import (
 	"container/list"
-	"net"
 	"sync"
 	"time"
 )
@@ -118,69 +117,6 @@ func (p *poolImpl) resizeLess(n int) {
 	p.resizing = false
 }
 
-//從 連接池 中 獲取一個連接
-func (p *poolImpl) Get() (net.Conn, error) {
-	p.m.Lock()
-	defer p.m.Unlock()
-
-	//查找 已有連接
-	element := p.l.Back()
-	var c *Conn
-	for ; element != nil; element = element.Prev() {
-		c0 := element.Value.(*Conn)
-		if c0.status == _StatusIdle {
-			c = c0
-			break
-		}
-	}
-	if c != nil { //找到 可用 連接 返回之
-		//從列表 移除
-		p.l.Remove(element)
-
-		//停止 timer
-		if c.timer != nil {
-			c.timer.Stop()
-		}
-		//返回 連接
-		c.status = _StatusGet
-
-		//自動 縮擴容
-		p.resize()
-		return c, nil
-	}
-
-	//沒有 空閒 連接 創建 新連接
-	/*if p.l.Len() == 0 {
-		//執行 自動 擴容
-		//****
-
-		c, e := p.t.Conect()
-		if e != nil {
-			return nil, e
-		}
-		return newConn(c), nil
-	}
-
-	//返回 節點
-	element := p.l.Back()
-	c := element.Value.(*Conn)
-	p.l.Remove(element)
-
-	if p.l.Len() == 0 {
-		//執行 自動 擴容
-		//****
-	}
-
-	//停止 timer
-	if c.timer != nil {
-		c.timer.Stop()
-		c.timer = nil
-	}
-	//返回 連接
-	*/
-	return c, nil
-}
-
 //爲連接 執行 ping 操作
 func (p *poolImpl) executePing(c *Conn, d time.Duration) {
 	if c.timer == nil {
@@ -197,6 +133,7 @@ func (p *poolImpl) executePing(c *Conn, d time.Duration) {
 
 			//執行 ping
 			e := p.t.Ping(c)
+
 			p.m.Lock()
 			defer p.m.Unlock()
 			if e == nil {
@@ -221,44 +158,84 @@ func (p *poolImpl) executePing(c *Conn, d time.Duration) {
 }
 
 //將 連接 返回給 連接池
-func (p *poolImpl) Put(c net.Conn) {
-	/*	p.m.Lock()
-		defer p.m.Unlock()
+func (p *poolImpl) Put(c *Conn) {
+	p.m.Lock()
+	defer p.m.Unlock()
 
-		c0 := c.(*Conn)
-		if c0.status == _StatusClose {
-			//釋放連接
-			c0.free(p.t)
-			return
+	//減少 使用 計數
+	p.use--
+
+	if c.status == _StatusClose {
+		//釋放連接
+		c.free(p.t)
+		return
+	}
+
+	if p.run {
+		//創建 ping
+		duration := p.t.PingInterval()
+		if duration > 0 {
+			p.executePing(c, duration)
 		}
+		//加入 連接池
+		c.lastPut = time.Now()
+		c.status = _StatusIdle
+		p.l.PushBack(c)
 
-		if p.run {
-			//創建 ping
-			duration := p.t.PingInterval()
-			if duration > 0 {
-				p.executePing(c0, duration)
-			}
-			//加入 連接池
-			c0.lastPut = time.Now()
-			c0.status = _StatusIdle
-			p.l.PushBack(c0)
+		//調整 容量
+		p.resize()
+	} else {
+		//工作 已停止 直接釋放 連接
+		c.free(p.t)
+	}
 
-			//需要 釋放 資源
-			n := p.l.Len()
-			if n > 1 && n > p.t.MinConn() {
-				if p.lastFree.Add(p.t.MinFreeInterval()).After(time.Now()) { //超過了最小執行 週期
-					if p.t.MinConn() == 0 {
-						p.free(n - 1)
-					} else {
-						p.free(n - p.t.MinConn())
-					}
-				}
-			}
-		} else {
-			//工作 已停止 直接釋放 連接
-			c0.free(p.t)
+}
+
+//從 連接池 中 獲取一個連接
+func (p *poolImpl) Get() (*Conn, error) {
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	//查找 已有連接
+	ele := p.l.Back()
+	var c *Conn
+	for ; ele != nil; ele = ele.Prev() {
+		c0 := ele.Value.(*Conn)
+		if c0.status == _StatusIdle {
+			c = c0
+			break
 		}
-	*/
+	}
+	if c != nil { //找到 可用 連接 返回之
+		//從列表 移除
+		p.l.Remove(ele)
+
+		//停止 timer
+		if c.timer != nil {
+			c.timer.Stop()
+		}
+		//返回 連接
+		c.status = _StatusGet
+
+		//增加 計數
+		p.use++
+
+		//調整 容量
+		p.resize()
+		return c, nil
+	}
+
+	//沒有 空閒 連接 創建 新連接
+	c0, e := p.t.Conect()
+	if e != nil {
+		return nil, e
+	}
+	//增加 計數
+	p.use++
+
+	//執行 自動 擴容
+	p.resize()
+	return newConn(c0, _StatusGet), nil
 }
 
 //釋放 超時資源
