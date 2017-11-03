@@ -2,6 +2,8 @@ package pool
 
 import (
 	"container/list"
+	"errors"
+	"net"
 	"sync"
 	"time"
 )
@@ -58,10 +60,10 @@ func (p *poolImpl) resizeTimer() {
 		//擴容
 		p.resizing = true
 		go p.resizeMore(n)
-	} else {
+	} else if n < 0 {
 		//縮容
 		p.resizing = true
-		go p.resizeLess(n)
+		go p.resizeLess(-n)
 	}
 
 	//重置 執行 時間
@@ -89,10 +91,10 @@ func (p *poolImpl) resize() {
 		//擴容
 		p.resizing = true
 		go p.resizeMore(n)
-	} else {
+	} else if n < 0 {
 		//縮容
 		p.resizing = true
-		go p.resizeLess(n)
+		go p.resizeLess(-n)
 	}
 
 	//重置 執行 時間
@@ -101,17 +103,65 @@ func (p *poolImpl) resize() {
 
 //擴容
 func (p *poolImpl) resizeMore(n int) {
+	for ; n > 0; n-- {
+		c, e := p.t.Conect()
+		if e != nil {
+			p.resizing = false
+			return
+		}
+		if nil != p.put(c) {
+			p.resizing = false
+			return
+		}
+	}
+	p.lastResize = time.Now()
+	p.resizing = false
+}
+func (p *poolImpl) put(c0 net.Conn) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 
-	p.lastResize = time.Now()
-	p.resizing = false
+	if !p.run {
+		return errors.New("pool not run")
+	}
+
+	c := newConn(c0, _StatusIdle)
+
+	//創建 ping
+	d := p.t.PingInterval()
+	if d > 0 {
+		p.executePing(c, d)
+	}
+	//創建 timeout
+	d = p.t.Timeout()
+	if d > 0 {
+		p.executeTimeout(c, d)
+	}
+
+	//加入 連接池
+	p.l.PushBack(c)
+	return nil
 }
 
 //縮容
 func (p *poolImpl) resizeLess(n int) {
 	p.m.Lock()
 	defer p.m.Unlock()
+
+	var next *list.Element
+	for pos := p.l.Front(); pos != nil && n > 0; pos = next {
+		next = pos.Next()
+
+		c := pos.Value.(*Conn)
+		if c.status != _StatusIdle {
+			continue
+		}
+
+		//移除節點
+		p.l.Remove(pos)
+		c.free(p.t)
+		n--
+	}
 
 	p.lastResize = time.Now()
 	p.resizing = false
@@ -153,8 +203,7 @@ func (p *poolImpl) executePing(c *Conn, d time.Duration) {
 		c.timer = time.AfterFunc(d, func() {
 			//驗證 狀態 是否 空閒
 			p.m.Lock()
-			if c.status != _StatusIdle && //已經分配工作 不需要 ping
-				c.status != _StatusTimeout { //正在 超時 關閉 不需要 ping
+			if c.status != _StatusIdle { //已經分配工作 不需要 ping
 				p.m.Unlock()
 				return
 			}
@@ -203,10 +252,16 @@ func (p *poolImpl) Put(c *Conn) {
 
 	if p.run {
 		//創建 ping
-		duration := p.t.PingInterval()
-		if duration > 0 {
-			p.executePing(c, duration)
+		d := p.t.PingInterval()
+		if d > 0 {
+			p.executePing(c, d)
 		}
+		//創建 timeout
+		d = p.t.Timeout()
+		if d > 0 {
+			p.executeTimeout(c, d)
+		}
+
 		//加入 連接池
 		c.lastPut = time.Now()
 		c.status = _StatusIdle

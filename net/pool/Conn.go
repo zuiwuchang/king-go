@@ -6,12 +6,11 @@ import (
 )
 
 const (
-	_StatusIdle    = 0 //空閒
-	_StatusGet     = 1 //已經被用戶 使用
-	_StatusPing    = 2 //正在執行 ping
-	_StatusClose   = 3 //請求關閉socket
-	_StatusClosed  = 4 //socket已關閉
-	_StatusTimeout = 5 //socket 超時 正在關閉
+	_StatusIdle   = 0 //空閒
+	_StatusGet    = 1 //已經被用戶 使用
+	_StatusPing   = 2 //正在執行 ping
+	_StatusClose  = 3 //請求關閉socket
+	_StatusClosed = 4 //socket已關閉
 
 )
 
