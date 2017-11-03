@@ -7,6 +7,7 @@ go get -u github.com/zuiwuchang/king-go
 # tcp 相關
  1. [king-go/net/basic](https://github.com/zuiwuchang/king-go/tree/master/net/basic) tcp 服務器
  2. [king-go/net/echo](https://github.com/zuiwuchang/king-go/tree/master/net/echo) tcp 服務器 自動解包
+ 3. [king-go/net/pool](https://github.com/zuiwuchang/king-go/tree/master/net/pool) tcp 連接池
 
 # 遊戲客戶端
  * [king-go/sdl2](https://github.com/zuiwuchang/king-go/sdl2) 對sdl的一些封裝

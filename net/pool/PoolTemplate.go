@@ -37,3 +37,68 @@ type IPoolTemplate interface {
 	//返回 <0 縮容 |n|
 	Resize(use /*已被get使用的 連接數*/, free /*未被使用的 連接數*/ int) int
 }
+
+//創建一個 默認的 連接池 模板
+func NewPoolTemplate(addr string, //服務器地址
+	timeout time.Duration, //未活動超時時間
+	min int, //最少 空閒 連接數
+	max int, //最多 空閒 連接數
+) *PoolTemplate {
+	if min < 1 {
+		min = 1
+	}
+	if max < 1 {
+		max = 10
+	}
+	if min < max {
+		max, min = min, max
+	}
+	return &PoolTemplate{
+		addr:    addr,
+		timeout: timeout,
+		min:     min,
+		max:     max,
+	}
+}
+
+//默認的 連接池 模板
+type PoolTemplate struct {
+	//服務器 地址
+	addr string
+	//未活動超時時間
+	timeout time.Duration
+	//最少 空閒 連接數
+	min int
+	//最多 空閒 連接數
+	max int
+}
+
+func (p *PoolTemplate) Conect() (net.Conn, error) {
+	return net.Dial("tcp", p.addr)
+}
+func (p *PoolTemplate) Close(c net.Conn) error {
+	return c.Close()
+}
+func (p *PoolTemplate) Ping(*Conn) error {
+	return nil
+}
+func (p *PoolTemplate) PingInterval() time.Duration {
+	return 0
+}
+func (p *PoolTemplate) Timeout() time.Duration {
+	return p.timeout
+}
+func (p *PoolTemplate) MinInterval() time.Duration {
+	return time.Second * 5
+}
+func (p *PoolTemplate) Interval() time.Duration {
+	return time.Minute * 5
+}
+func (p *PoolTemplate) Resize(use, free int) int {
+	if free < p.min {
+		return free - (p.min+p.max)/2
+	} else if free > p.max {
+		return free - p.max
+	}
+	return 0
+}
