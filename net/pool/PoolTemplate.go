@@ -20,6 +20,8 @@ type IPoolTemplate interface {
 	PingInterval() time.Duration
 
 	//多久 未活動的 連接 會被 釋放
+	//返回 0 永不超時
+	//返回值 必須 恆定
 	Timeout() time.Duration
 
 	//連接池 執行縮擴容 操作 的最小 執行週期

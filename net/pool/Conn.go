@@ -6,11 +6,12 @@ import (
 )
 
 const (
-	_StatusIdle   = 0 //空閒
-	_StatusGet    = 1 //已經被用戶 使用
-	_StatusPing   = 2 //正在執行 ping
-	_StatusClose  = 3 //請求關閉socket
-	_StatusClosed = 4 //socket已關閉
+	_StatusIdle    = 0 //空閒
+	_StatusGet     = 1 //已經被用戶 使用
+	_StatusPing    = 2 //正在執行 ping
+	_StatusClose   = 3 //請求關閉socket
+	_StatusClosed  = 4 //socket已關閉
+	_StatusTimeout = 5 //socket 超時 正在關閉
 
 )
 
@@ -25,6 +26,9 @@ type Conn struct {
 	//執行 ping 的 timer
 	timer *time.Timer
 
+	//執行 timeout 的 timer
+	timeout *time.Timer
+
 	//當前狀態
 	status int
 }
@@ -36,6 +40,7 @@ func newConn(c net.Conn, status int) *Conn {
 		Conn:    c,
 		lastPut: now,
 		timer:   nil,
+		timeout: nil,
 		status:  status,
 	}
 }
@@ -51,6 +56,7 @@ func (c *Conn) free(t IPoolTemplate) {
 	t.Close(c.Conn)
 }
 
+//close 之後 Put 會 連接池 連接池 將 釋放 此連接的資源
 func (c *Conn) Close() error {
 	c.status = _StatusClose
 	return nil

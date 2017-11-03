@@ -68,5 +68,14 @@ func NewPool(t IPoolTemplate, sum int) (IPool, error) {
 			impl.executePing(c, d)
 		}
 	}
+
+	//啓用 超時
+	d = t.Timeout()
+	if d > 0 {
+		for iter := l.Front(); iter != nil; iter = iter.Next() {
+			c := iter.Value.(*Conn)
+			impl.executeTimeout(c, d)
+		}
+	}
 	return impl, nil
 }

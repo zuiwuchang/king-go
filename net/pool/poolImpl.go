@@ -117,6 +117,35 @@ func (p *poolImpl) resizeLess(n int) {
 	p.resizing = false
 }
 
+//爲連接 執行 超時 關閉 操作
+func (p *poolImpl) executeTimeout(c *Conn, d time.Duration) {
+	if c.timeout == nil {
+		c.timeout = time.AfterFunc(d, func() {
+			p.m.Lock()
+			defer p.m.Unlock()
+
+			if c.status == _StatusIdle {
+				//超時 關閉
+				c.Conn.Close()
+				for iter := p.l.Front(); iter != nil; iter = iter.Next() {
+					c0 := iter.Value.(*Conn)
+					if c0 == c {
+						p.l.Remove(iter)
+						p.resize()
+						break
+					}
+				}
+			} else if c.status == _StatusPing {
+				//正在ping中 延遲 執行 timeout
+				c.timeout.Reset(time.Minute)
+			}
+		})
+	} else {
+		//已有 timer 直接 執行之
+		c.timeout.Reset(d)
+	}
+}
+
 //爲連接 執行 ping 操作
 func (p *poolImpl) executePing(c *Conn, d time.Duration) {
 	if c.timer == nil {
@@ -124,7 +153,8 @@ func (p *poolImpl) executePing(c *Conn, d time.Duration) {
 		c.timer = time.AfterFunc(d, func() {
 			//驗證 狀態 是否 空閒
 			p.m.Lock()
-			if c.status != _StatusIdle { //已經分配工作 不需要 ping
+			if c.status != _StatusIdle && //已經分配工作 不需要 ping
+				c.status != _StatusTimeout { //正在 超時 關閉 不需要 ping
 				p.m.Unlock()
 				return
 			}
@@ -214,6 +244,9 @@ func (p *poolImpl) Get() (*Conn, error) {
 		if c.timer != nil {
 			c.timer.Stop()
 		}
+		if c.timeout != nil {
+			c.timeout.Stop()
+		}
 		//返回 連接
 		c.status = _StatusGet
 
@@ -280,6 +313,8 @@ func (p *poolImpl) Close() {
 	if !p.run { //沒有工作 直接 返回
 		return
 	}
+
+	p.run = false
 
 	//關閉 所有 連接
 	for iter := p.l.Front(); iter != nil; iter = iter.Next() {
