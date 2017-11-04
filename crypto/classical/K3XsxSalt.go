@@ -24,7 +24,7 @@ package classical
 import (
 	"crypto/rand"
 	"errors"
-	"king-go/crypto"
+	"github.com/zuiwuchang/king-go/crypto"
 )
 
 type K3XsxSalt struct {
