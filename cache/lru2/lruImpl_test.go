@@ -5,6 +5,19 @@ import (
 	"time"
 )
 
+func TestLRU2(t *testing.T) {
+	cache := newLRUImpl(time.Second, 3)
+	cache.Set(0, 100)
+	cache.debugPrint(t)
+	cache.Set(1, 101)
+	cache.debugPrint(t)
+	cache.Get(0)
+	cache.debugPrint(t)
+	cache.Set(2, 102)
+	cache.debugPrint(t)
+	cache.Set(3, 103)
+	cache.debugPrint(t)
+}
 func TestLRU(t *testing.T) {
 	cache := newLRUImpl(time.Millisecond*100, 3)
 	cache.Set("kate", "my love")

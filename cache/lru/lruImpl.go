@@ -1,7 +1,9 @@
 package lru
 
 import (
+	"fmt"
 	"sync"
+	"testing"
 )
 
 type _Element struct {
@@ -132,10 +134,18 @@ func (this *lruImpl) unsafeToBack(ele *_Element) {
 		//本來就是 back 節點 直接返回
 		return
 	}
+
 	ele.Next.Pre = ele.Pre
-	if ele.Pre != nil {
+	if ele.Pre == nil {
+		this.Front = ele.Next
+	} else {
 		ele.Pre.Next = ele.Next
 	}
+
+	ele.Next = nil
+	ele.Pre = this.Back
+	this.Back.Next = ele
+	this.Back = ele
 }
 
 //創建 一個 緩存
@@ -178,8 +188,40 @@ func (this *lruImpl) unsafeNew(key IKey, val IValue) {
 	this.Keys[key] = ele
 	if this.Back == nil {
 		this.Front = ele
-		this.Back = ele
 	} else {
 		this.Back.Next = ele
+	}
+	this.Back = ele
+}
+func (this *lruImpl) debugPrint(t *testing.T) {
+	node := this.Front
+	if t == nil {
+		fmt.Print("[")
+	}
+	sum := 0
+	for node != nil {
+		sum++
+		if t == nil {
+			fmt.Printf("%v=%v ,", node.Key, node.Value)
+		}
+		next := node.Next
+		if next != nil {
+			if next.Pre != node {
+				t.Fatal("bad Pre")
+			}
+		}
+
+		node = next
+	}
+	if t == nil {
+		fmt.Print("]")
+	}
+	if len(this.Keys) != sum {
+		t.Fatalf(" len(%v %v) ", len(this.Keys), sum)
+	}
+	if this.Back != nil {
+		if t == nil {
+			fmt.Printf(" %v=%v \n", this.Back.Key, this.Back.Value)
+		}
 	}
 }
