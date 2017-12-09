@@ -11,7 +11,7 @@ go get -u github.com/zuiwuchang/king-go
 
 # 緩存
  * [king-go/cache/lru](https://github.com/zuiwuchang/king-go/tree/master/cache/lru) 使用lru算法實現的緩存
- * [king-go/cache/lru2](https://github.com/zuiwuchang/king-go/tree/master/cache/lru) 類似lru庫 不過爲每個緩存項目 添加了一個超時過期 時間
+ * [king-go/cache/lru2](https://github.com/zuiwuchang/king-go/tree/master/cache/lru2) 類似lru庫 不過爲每個緩存項目 添加了一個超時過期 時間
  
 # 遊戲客戶端
  * [king-go/sdl2](https://github.com/zuiwuchang/king-go/tree/master/sdl2) 對sdl的一些封裝
