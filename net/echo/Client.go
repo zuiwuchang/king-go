@@ -20,21 +20,27 @@ type client struct {
 	net.Conn
 	template IClientTemplate
 	buffer   *bytes.Buffer
+	bufLen   int
 	size     int
 }
 
 //創建一個 echo 客戶端
 func NewClient(addr string, template IClientTemplate) (IClient, error) {
+	return NewClient2(addr, DefaultBufferLen, template)
+}
+
+//創建一個 echo 客戶端
+func NewClient2(addr string, bufLen int, template IClientTemplate) (IClient, error) {
 	conn, e := net.Dial("tcp", addr)
 	if e != nil {
 		return nil, e
 	}
 
-	return &client{conn, template, &bytes.Buffer{}, -1}, nil
+	return &client{conn, template, &bytes.Buffer{}, bufLen, -1}, nil
 }
 
 func (c *client) GetMessage(timeout time.Duration) ([]byte, error) {
-	b := make([]byte, 1024)
+	b := make([]byte, c.bufLen)
 	var timer *time.Timer
 	for {
 		if c.buffer.Len() > 0 {

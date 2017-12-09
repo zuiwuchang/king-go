@@ -28,7 +28,7 @@ type ILRU interface {
 	Clear()
 	//刪除 指定緩存
 	Delete(key IKey)
-	//返回 是否存在 緩存 不會更新超時時間
+	//返回 是否存在 緩存 不會 移動節點 更新超時時間
 	Ok(key IKey) bool
 	//返回 緩存值 不存在 返回 nil
 	Get(key IKey) IValue

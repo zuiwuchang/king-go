@@ -8,6 +8,10 @@ import (
 )
 
 const (
+	MinBufferLen     = 256
+	DefaultBufferLen = 1024 * 4
+)
+const (
 	cmdRun   = 1
 	cmdClose = 2
 )
@@ -34,6 +38,9 @@ type server struct {
 	listener net.Listener
 	timeout  time.Duration
 
+	//recv 緩衝區 大小
+	bufLen int
+
 	//服務器 是否運行中
 	run bool
 
@@ -49,13 +56,37 @@ type server struct {
 
 //創建一個 echo 服務器
 //timeout 客戶端 未活動 斷開時間 如果爲0 不主動斷開
-func NewServer(laddr string, timeout time.Duration, template IServerTemplate) (IServer, error) {
+func NewServer(laddr string,
+	timeout time.Duration,
+	template IServerTemplate,
+) (IServer, error) {
+	return NewServer2(laddr,
+		DefaultBufferLen,
+		timeout,
+		template,
+	)
+}
+
+//創建一個 basic 服務器
+//timeout 客戶端 未活動 斷開時間 如果爲0 不主動斷開
+func NewServer2(laddr string,
+	bufLen int,
+	timeout time.Duration,
+	template IServerTemplate,
+) (IServer, error) {
+	if bufLen < MinBufferLen {
+		bufLen = MinBufferLen
+	}
 	l, e := net.Listen("tcp", laddr)
 	if e != nil {
 		return nil, e
 	}
 
-	s := &server{listener: l,
+	s := &server{
+		listener: l,
+
+		bufLen: bufLen,
+
 		timeout:    timeout,
 		cmd:        make(chan int),
 		signalWait: make(chan int),
@@ -147,7 +178,7 @@ func (s *server) read(c net.Conn) {
 	}()
 
 	var buffer bytes.Buffer
-	b := make([]byte, 1024)
+	b := make([]byte, s.bufLen)
 	size := -1
 	headerSize := template.GetHeaderSize()
 	var timer *time.Timer
