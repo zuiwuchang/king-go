@@ -2,7 +2,6 @@ package lru
 
 import (
 	"sync"
-	"time"
 )
 
 type _Element struct {
@@ -11,14 +10,11 @@ type _Element struct {
 
 	Key   IKey
 	Value IValue
-
-	Timer *time.Timer
 }
 type lruImpl struct {
 	RW sync.RWMutex
 
-	Expired time.Duration
-	Max     int
+	Max int
 
 	//緩存 的節點
 	Keys  map[IKey]*_Element
@@ -26,13 +22,12 @@ type lruImpl struct {
 	Back  *_Element
 }
 
-func newLRUImpl(expired time.Duration, maxElementSize int) *lruImpl {
+func newLRUImpl(maxElementSize int) *lruImpl {
 	if maxElementSize < 1 {
 		maxElementSize = 1
 	}
 	return &lruImpl{
-		Expired: expired,
-		Max:     maxElementSize,
+		Max: maxElementSize,
 
 		Keys: make(map[IKey]*_Element),
 	}
@@ -57,13 +52,7 @@ func (this *lruImpl) Cap() (n int) {
 //刪除 所有 緩存
 func (this *lruImpl) Clear() {
 	this.RW.Lock()
-	for key, ele := range this.Keys {
-		//停止 定時器
-		if ele.Timer != nil {
-			ele.Timer.Stop()
-			ele.Timer = nil
-		}
-
+	for key, _ := range this.Keys {
 		//刪除 map
 		delete(this.Keys, key)
 	}
@@ -85,11 +74,6 @@ func (this *lruImpl) unsafeDelete(key IKey) {
 		return
 	}
 
-	//停止 定時器
-	if ele.Timer != nil {
-		ele.Timer.Stop()
-		ele.Timer = nil
-	}
 	//刪除 map
 	delete(this.Keys, key)
 
@@ -119,7 +103,7 @@ func (this *lruImpl) unsafeRemoveList(ele *_Element) {
 	}
 }
 
-//返回 是否存在 緩存 不會更新超時時間
+//返回 是否存在 緩存
 func (this *lruImpl) Ok(key IKey) (ok bool) {
 	this.RW.RLock()
 	_, ok = this.Keys[key]
@@ -137,12 +121,6 @@ func (this *lruImpl) Get(key IKey) IValue {
 	if !ok {
 		return nil
 	}
-	//重置 超時 定時器
-	if ele.Timer != nil {
-		ele.Timer.Stop()
-	}
-	ele.Timer = time.NewTimer(this.Expired)
-	go this.onExpired(ele, ele.Timer)
 
 	//移動到 Back
 	this.unsafeToBack(ele)
@@ -160,29 +138,8 @@ func (this *lruImpl) unsafeToBack(ele *_Element) {
 	}
 }
 
-func (this *lruImpl) onExpired(ele *_Element, timer *time.Timer) {
-	//等待超時
-	<-timer.C
-
-	this.RW.Lock()
-	defer this.RW.Unlock()
-
-	//驗證 定時器 是否 已經 過期
-	if ele.Timer != timer {
-		return
-	}
-
-	//刪除 緩存
-	this.unsafeDelete(ele.Key)
-}
-
 //創建 一個 緩存
 func (this *lruImpl) Set(key IKey, val IValue) {
-	this.Set2(key, val, this.Expired)
-}
-
-//創建 一個 緩存 同時指定 超時 時間
-func (this *lruImpl) Set2(key IKey, val IValue, expired time.Duration) {
 	this.RW.Lock()
 	defer this.RW.Unlock()
 
@@ -191,17 +148,13 @@ func (this *lruImpl) Set2(key IKey, val IValue, expired time.Duration) {
 	if ok {
 		//更新
 		ele.Value = val
-		this.unsafeUpdate(ele, expired)
+
+		//移動到 Back
+		this.unsafeToBack(ele)
 	} else {
 		//創建 新緩存
 		if len(this.Keys) == this.Max &&
 			this.Front != nil {
-
-			//停止 定時器
-			if this.Front.Timer != nil {
-				this.Front.Timer.Stop()
-				this.Front.Timer = nil
-			}
 
 			//刪除 front
 			delete(this.Keys, this.Front.Key)
@@ -209,29 +162,17 @@ func (this *lruImpl) Set2(key IKey, val IValue, expired time.Duration) {
 			this.unsafeRemoveList(this.Front)
 		}
 		//創建
-		this.unsafeNew(key, val, expired)
+		this.unsafeNew(key, val)
 	}
 }
-func (this *lruImpl) unsafeUpdate(ele *_Element, expired time.Duration) {
-	//重置 超時 定時器
-	if ele.Timer != nil {
-		ele.Timer.Stop()
-	}
-	ele.Timer = time.NewTimer(expired)
-	go this.onExpired(ele, ele.Timer)
 
-	//移動到 Back
-	this.unsafeToBack(ele)
-}
-func (this *lruImpl) unsafeNew(key IKey, val IValue, expired time.Duration) {
+func (this *lruImpl) unsafeNew(key IKey, val IValue) {
 	ele := &_Element{
 		Pre:  this.Back,
 		Next: nil,
 
 		Key:   key,
 		Value: val,
-
-		Timer: time.NewTimer(expired),
 	}
 
 	this.Keys[key] = ele
@@ -241,6 +182,4 @@ func (this *lruImpl) unsafeNew(key IKey, val IValue, expired time.Duration) {
 	} else {
 		this.Back.Next = ele
 	}
-
-	go this.onExpired(ele, ele.Timer)
 }
