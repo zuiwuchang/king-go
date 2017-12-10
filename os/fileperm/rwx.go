@@ -50,17 +50,17 @@ const (
 )
 
 const (
-	//drwxrwxr-x
-	Directory = os.ModeDir | UA | GA | ORX
+	//drwxr-xr-x
+	Directory = os.ModeDir | UA | GRX | ORX
 
-	//-rw-rw-r--
-	File = URW | GRW | OR
+	//-rw-r--r--
+	File = URW | GR | OR
 
-	//-r-xr-xr-x
-	Execute = URX | GRX | ORX
+	//-rwxr-xr-x
+	Execute = UA | GRX | ORX
 
-	//-rwxrwxr-x
-	ShellScript = UA | GA | ORX
+	//-rwxr-xr-x
+	ShellScript = File | AX
 )
 
 func SetPerm(args ...os.FileMode) (rs os.FileMode) {

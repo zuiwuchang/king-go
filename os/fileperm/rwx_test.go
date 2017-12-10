@@ -19,13 +19,13 @@ func TestFunc(t *testing.T) {
 	}
 }
 func TestDefault(t *testing.T) {
-	if fmt.Sprint(Directory) != "drwxrwxr-x" {
+	if fmt.Sprint(Directory) != "drwxr-xr-x" {
 		t.Fatal("bad directory")
-	} else if fmt.Sprint(File) != "-rw-rw-r--" {
+	} else if fmt.Sprint(File) != "-rw-r--r--" {
 		t.Fatal("bad file")
-	} else if fmt.Sprint(Execute) != "-r-xr-xr-x" {
+	} else if fmt.Sprint(Execute) != "-rwxr-xr-x" {
 		t.Fatal("bad execute")
-	} else if fmt.Sprint(ShellScript) != "-rwxrwxr-x" {
+	} else if fmt.Sprint(ShellScript) != "-rwxr-xr-x" {
 		t.Fatal("bad shell script")
 	}
 }
