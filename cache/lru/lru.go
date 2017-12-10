@@ -25,4 +25,9 @@ type ILRU interface {
 	Get(key IKey) IValue
 	//創建 一個 緩存
 	Set(key IKey, val IValue)
+
+	//釋放 緩存並返回 Len()
+	//
+	//執行後 緩存容量將 <= Cap() * percentage
+	Resize(percentage float64) int
 }

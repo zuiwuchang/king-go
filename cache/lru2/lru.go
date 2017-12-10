@@ -36,4 +36,9 @@ type ILRU interface {
 	Set(key IKey, val IValue)
 	//創建 一個 緩存 同時指定 超時 時間
 	Set2(key IKey, val IValue, expired time.Duration)
+
+	//釋放 緩存並返回 Len()
+	//
+	//執行後 緩存容量將 <= Cap() * percentage
+	Resize(percentage float64) int
 }

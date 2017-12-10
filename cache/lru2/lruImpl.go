@@ -59,6 +59,10 @@ func (this *lruImpl) Cap() (n int) {
 //刪除 所有 緩存
 func (this *lruImpl) Clear() {
 	this.Mutex.Lock()
+	this.unsafeClear()
+	this.Mutex.Unlock()
+}
+func (this *lruImpl) unsafeClear() {
 	for key, ele := range this.Keys {
 		//停止 定時器
 		if ele.Timer != nil {
@@ -71,7 +75,6 @@ func (this *lruImpl) Clear() {
 	}
 	this.Front = nil
 	this.Back = nil
-	this.Mutex.Unlock()
 }
 
 //刪除 指定緩存
@@ -253,6 +256,69 @@ func (this *lruImpl) unsafeNew(key IKey, val IValue, expired time.Duration) {
 	this.Back = ele
 
 	go this.onExpired(ele, ele.Timer)
+}
+
+//釋放 緩存並返回 Len()
+//
+//執行後 緩存容量將 <= Cap() * percentage
+func (this *lruImpl) Resize(percentage float64) int {
+	this.Mutex.Lock()
+	defer this.Mutex.Unlock()
+
+	max := (int)((float64)(this.Max) * percentage)
+	if max == this.Max {
+		return len(this.Keys)
+	} else if max == 0 {
+		if len(this.Keys) != 0 {
+			this.unsafeClear()
+		}
+		return 0
+	} else if max == 1 {
+		this.unsafeOnlyOne()
+		return len(this.Keys)
+	}
+
+	for len(this.Keys) > max {
+		this.unsafePopFront()
+	}
+	return len(this.Keys)
+}
+func (this *lruImpl) unsafeOnlyOne() {
+	ele := this.Back
+	if ele == nil { //沒有節點
+		return
+	} else if ele == this.Front { //只有一個節點
+		return
+	}
+
+	ele.Pre = nil
+	this.Front = ele
+	for k, v := range this.Keys {
+		if k != ele.Key {
+			delete(this.Keys, k)
+
+			//停止 定時器
+			if v.Timer != nil {
+				v.Timer.Stop()
+				v.Timer = nil
+			}
+		}
+	}
+}
+func (this *lruImpl) unsafePopFront() {
+	ele := this.Front
+	this.Front = ele.Next
+	if ele.Next == nil {
+		this.Back = nil
+	} else {
+		ele.Next.Pre = nil
+	}
+	delete(this.Keys, ele.Key)
+	//停止 定時器
+	if ele.Timer != nil {
+		ele.Timer.Stop()
+		ele.Timer = nil
+	}
 }
 func (this *lruImpl) debugPrint(t *testing.T) {
 	node := this.Front

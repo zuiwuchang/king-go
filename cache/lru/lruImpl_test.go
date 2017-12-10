@@ -4,6 +4,52 @@ import (
 	"testing"
 )
 
+func TestResize(t *testing.T) {
+	cache := newLRUImpl(3)
+	cache.Set(0, 100)
+	cache.Set(1, 101)
+	cache.Set(2, 102)
+	cache.Set(3, 103)
+
+	if cache.Resize(0.67) != 2 ||
+		cache.Ok(0) || cache.Ok(1) ||
+		!cache.Ok(2) || !cache.Ok(3) {
+		t.Fatal("bad Resize to 2 len")
+	}
+	cache.debugPrint(t)
+	if cache.Resize(0.67) != 2 ||
+		cache.Ok(0) || cache.Ok(1) ||
+		!cache.Ok(2) || !cache.Ok(3) {
+		t.Fatal("bad Resize to 2 len")
+	}
+	cache.debugPrint(t)
+
+	if cache.Resize(0.34) != 1 ||
+		cache.Ok(0) || cache.Ok(1) ||
+		cache.Ok(2) || !cache.Ok(3) {
+		t.Fatal("bad Resize to 1 len")
+	}
+	cache.debugPrint(t)
+	if cache.Resize(0.34) != 1 ||
+		cache.Ok(0) || cache.Ok(1) ||
+		cache.Ok(2) || !cache.Ok(3) {
+		t.Fatal("bad Resize to 1 len")
+	}
+	cache.debugPrint(t)
+
+	if cache.Resize(0.1) != 0 ||
+		cache.Ok(0) || cache.Ok(1) ||
+		cache.Ok(2) || cache.Ok(3) {
+		t.Fatal("bad Resize to clear")
+	}
+	cache.debugPrint(t)
+	if cache.Resize(0.1) != 0 ||
+		cache.Ok(0) || cache.Ok(1) ||
+		cache.Ok(2) || cache.Ok(3) {
+		t.Fatal("bad Resize to clear")
+	}
+	cache.debugPrint(t)
+}
 func TestLRU2(t *testing.T) {
 	cache := newLRUImpl(3)
 	cache.Set(0, 100)

@@ -54,13 +54,16 @@ func (this *lruImpl) Cap() (n int) {
 //刪除 所有 緩存
 func (this *lruImpl) Clear() {
 	this.RW.Lock()
+	this.unsafeClear()
+	this.RW.Unlock()
+}
+func (this *lruImpl) unsafeClear() {
 	for key, _ := range this.Keys {
 		//刪除 map
 		delete(this.Keys, key)
 	}
 	this.Front = nil
 	this.Back = nil
-	this.RW.Unlock()
 }
 
 //刪除 指定緩存
@@ -192,6 +195,58 @@ func (this *lruImpl) unsafeNew(key IKey, val IValue) {
 		this.Back.Next = ele
 	}
 	this.Back = ele
+}
+
+//釋放 緩存並返回 Len()
+//
+//執行後 緩存容量將 <= Cap() * percentage
+func (this *lruImpl) Resize(percentage float64) int {
+	this.RW.Lock()
+	defer this.RW.Unlock()
+
+	max := (int)((float64)(this.Max) * percentage)
+	if max == this.Max {
+		return len(this.Keys)
+	} else if max == 0 {
+		if len(this.Keys) != 0 {
+			this.unsafeClear()
+		}
+		return 0
+	} else if max == 1 {
+		this.unsafeOnlyOne()
+		return len(this.Keys)
+	}
+
+	for len(this.Keys) > max {
+		this.unsafePopFront()
+	}
+	return len(this.Keys)
+}
+func (this *lruImpl) unsafeOnlyOne() {
+	ele := this.Back
+	if ele == nil { //沒有節點
+		return
+	} else if ele == this.Front { //只有一個節點
+		return
+	}
+
+	ele.Pre = nil
+	this.Front = ele
+	for k, _ := range this.Keys {
+		if k != ele.Key {
+			delete(this.Keys, k)
+		}
+	}
+}
+func (this *lruImpl) unsafePopFront() {
+	ele := this.Front
+	this.Front = ele.Next
+	if ele.Next == nil {
+		this.Back = nil
+	} else {
+		ele.Next.Pre = nil
+	}
+	delete(this.Keys, ele.Key)
 }
 func (this *lruImpl) debugPrint(t *testing.T) {
 	node := this.Front
