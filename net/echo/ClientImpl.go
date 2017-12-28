@@ -34,7 +34,6 @@ func (c *clientImpl) GetMessage(timeout time.Duration) ([]byte, error) {
 				c.Close()
 			})
 		}
-
 		n, e := c.Read(b)
 		if timer != nil {
 			timer.Stop()

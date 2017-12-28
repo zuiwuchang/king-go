@@ -54,6 +54,7 @@ func (c *Client) format() {
 
 //創建一個 客戶端
 func NewEchoClient(client *Client) (IClient, error) {
+	client.format()
 	conn, e := client.Dialer.Dial(client.Network, client.Addr)
 	if e != nil {
 		return nil, e
