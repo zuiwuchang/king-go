@@ -1,7 +1,7 @@
 package basic
 
 import (
-	"encoding/binary"
+	kio "github.com/zuiwuchang/king-go/io"
 	"net"
 )
 
@@ -22,13 +22,12 @@ type IServerTemplate interface {
 }
 
 //返回默認模板實現
-func NewServerTemplate(order binary.ByteOrder) IServerTemplate {
-	return &serverTemplate{order: order}
+func NewServerTemplate() IServerTemplate {
+	return &serverTemplate{}
 }
 
 //默認的 模板實現
 type serverTemplate struct {
-	order binary.ByteOrder
 }
 
 func (s *serverTemplate) NewSession(c net.Conn) (session Session, e error) {
@@ -37,6 +36,5 @@ func (s *serverTemplate) NewSession(c net.Conn) (session Session, e error) {
 func (s *serverTemplate) DeleteSession(c net.Conn, session Session) {
 }
 func (s *serverTemplate) Message(c net.Conn, session Session, b []byte) error {
-	_, e := c.Write(b)
-	return e
+	return kio.WriteAll(c, b)
 }
