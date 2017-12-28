@@ -3,6 +3,7 @@ package echo
 import (
 	"encoding/binary"
 	"errors"
+	kio "github.com/zuiwuchang/king-go/io"
 	"net"
 )
 
@@ -67,6 +68,5 @@ func (s *serverTemplate) NewSession(c net.Conn) (session Session, e error) {
 func (s *serverTemplate) DeleteSession(c net.Conn, session Session) {
 }
 func (s *serverTemplate) Message(c net.Conn, session Session, b []byte) error {
-	_, e := c.Write(b)
-	return e
+	return kio.WriteAll(c, b)
 }

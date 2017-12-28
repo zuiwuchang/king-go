@@ -2,10 +2,16 @@ package echo
 
 import (
 	"bytes"
-	"errors"
+	"encoding/binary"
 	"net"
 	"time"
 )
+
+type DialFunc func(network, address string) (net.Conn, error)
+
+type IDialer interface {
+	Dial(network, address string) (net.Conn, error)
+}
 
 //echo 客戶端 接口
 type IClient interface {
@@ -15,101 +21,52 @@ type IClient interface {
 	net.Conn
 }
 
-//echo 客戶端 實現
-type client struct {
-	net.Conn
-	template IClientTemplate
-	buffer   *bytes.Buffer
-	bufLen   int
-	size     int
+//客戶端 定義
+type Client struct {
+	Network string
+	Addr    string
+
+	//如何 連接 服務器
+	Dialer IDialer
+
+	//客戶端 模板
+	Template IClientTemplate
+
+	//recv 緩衝區 大小
+	RecvBuffer int
 }
 
-//創建一個 echo 客戶端
-func NewClient(addr string, template IClientTemplate) (IClient, error) {
-	return NewClient2(addr, DefaultBufferLen, template)
+//初始化 無效 選項為 默認值
+func (c *Client) format() {
+	if c.Network == "" {
+		c.Network = "tcp"
+	}
+	if c.Dialer == nil {
+		c.Dialer = g_netDialer
+	}
+	if c.Template == nil {
+		c.Template = NewClientTemplate(binary.LittleEndian, 731)
+	}
+	if c.RecvBuffer < MinBufferLen {
+		c.RecvBuffer = DefaultBufferLen
+	}
 }
 
-//創建一個 echo 客戶端
-func NewClient2(addr string, bufLen int, template IClientTemplate) (IClient, error) {
-	conn, e := net.Dial("tcp", addr)
+//創建一個 客戶端
+func NewEchoClient(client *Client) (IClient, error) {
+	conn, e := client.Dialer.Dial(client.Network, client.Addr)
 	if e != nil {
 		return nil, e
 	}
-
-	return &client{conn, template, &bytes.Buffer{}, bufLen, -1}, nil
+	return &clientImpl{conn, client.Template, &bytes.Buffer{}, client.RecvBuffer, -1}, nil
 }
 
-func (c *client) GetMessage(timeout time.Duration) ([]byte, error) {
-	b := make([]byte, c.bufLen)
-	var timer *time.Timer
-	for {
-		if c.buffer.Len() > 0 {
-			if b, e := c.getMessage(); e != nil {
-				return nil, e
-			} else if b != nil {
-				return b, nil
-			}
-		}
+//定義 默認的 IDialer
+var g_netDialer netDialer
 
-		if timeout != 0 {
-			timer = time.AfterFunc(timeout, func() {
-				c.Close()
-			})
-		}
-
-		n, e := c.Read(b)
-		if timer != nil {
-			timer.Stop()
-		}
-
-		if e != nil {
-			return nil, e
-		}
-
-		_, e = c.buffer.Write(b[:n])
-		if e != nil {
-			return nil, e
-		}
-
-	}
-	return nil, nil
+type netDialer struct {
 }
-func (c *client) getMessage() ([]byte, error) {
-	template := c.template
-	headerSize := template.GetHeaderSize()
-	buffer := c.buffer
-	var e error
-	for {
-		//讀取 header
-		if c.size == -1 {
-			if buffer.Len() < headerSize {
-				//等待 header
-				break
-			}
-			buf := buffer.Bytes()
-			c.size, e = template.GetMessageSize(buf[:headerSize])
-			if e != nil || c.size < headerSize {
-				//錯誤的 消息
-				return nil, errors.New("message size not match")
-			}
 
-		}
-
-		//讀取body
-		if buffer.Len() < c.size {
-			//等待 body
-			break
-		}
-		buf := make([]byte, c.size)
-		_, e = buffer.Read(buf)
-		if e != nil {
-			//讀取錯誤
-			return nil, e
-		}
-
-		//返回消息
-		c.size = -1
-		return buf, nil
-	}
-	return nil, nil
+func (netDialer) Dial(network, address string) (net.Conn, error) {
+	return net.Dial(network, address)
 }

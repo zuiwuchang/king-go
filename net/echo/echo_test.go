@@ -3,6 +3,7 @@ package echo
 import (
 	"encoding/binary"
 	"errors"
+	kio "github.com/zuiwuchang/king-go/io"
 	"testing"
 )
 
@@ -31,8 +32,7 @@ func TestEcho(t *testing.T) {
 		order.PutUint16(b[2:], uint16(n))
 		copy(b[4:], []byte(str))
 
-		_, e := c.Write(b)
-		return e
+		return kio.WriteAll(c, b)
 	}
 	requestStr := func(c IClient, str string) error {
 		e := writeStr(c, str)
