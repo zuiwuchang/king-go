@@ -114,13 +114,14 @@ func (s *serverImpl) read(c net.Conn) {
 	b := make([]byte, s.Server.RecvBuffer)
 	var timer *time.Timer
 	timeout := s.Server.Timeout
+	var n int
 	for {
 		if timeout != 0 {
 			timer = time.AfterFunc(timeout, func() {
 				c.Close()
 			})
 		}
-		n, e := c.Read(b)
+		n, e = c.Read(b)
 		if timer != nil {
 			timer.Stop()
 		}
