@@ -21,3 +21,9 @@ func (w *safeWriter) Write(b []byte) (n int, e error) {
 	w.Unlock()
 	return
 }
+func (w *safeWriter) ReadFrom(src io.Reader) (n int64, e error) {
+	w.Lock()
+	n, e = io.Copy(w.Writer, src)
+	w.Unlock()
+	return
+}
