@@ -37,3 +37,19 @@ func NewDebugLoggers() *Loggers {
 		Fault: c.NewFault(out),
 	}
 }
+
+//初始化 默認 調試 日誌
+func NewDebugLoggers2(tag string) *Loggers {
+	c := NewCreator()
+	c.Tag = tag
+	out := kio.NewSafeWriter(os.Stdout)
+
+	return &Loggers{
+		Trace: c.NewTrace(out),
+		Debug: c.NewDebug(out),
+		Info:  c.NewInfo(out),
+		Warn:  c.NewWarn(out),
+		Error: c.NewError(out),
+		Fault: c.NewFault(out),
+	}
+}
