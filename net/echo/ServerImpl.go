@@ -1,8 +1,8 @@
 package echo
 
 import (
-	"bytes"
 	kio "github.com/zuiwuchang/king-go/io"
+	"io"
 	"net"
 	"time"
 )
@@ -110,74 +110,66 @@ func (s *serverImpl) read(c net.Conn) {
 	}
 	s.signalIn <- c
 
+	var timer *time.Timer
 	//銷毀 session
 	defer func() {
+		if timer != nil {
+			timer.Stop()
+		}
 		template.DeleteSession(c, session)
 		c.Close()
 		s.signalOut <- c
 	}()
 
-	var buffer bytes.Buffer
-	b := make([]byte, s.Server.RecvBuffer)
-	size := -1
 	headerSize := template.GetHeaderSize()
-	var timer *time.Timer
 	timeout := s.Server.Timeout
-	var n int
-	var buf []byte
+
+	buffer := make([]byte, s.Server.RecvBuffer)
+	header := buffer[:headerSize]
+	var msg []byte
+	var size int
 	for {
+		//啓動 超時 關閉
 		if timeout != 0 {
 			timer = time.AfterFunc(timeout, func() {
 				c.Close()
 			})
 		}
-		n, e = c.Read(b)
+
+		//讀取 header
+		e = kio.ReadAll(io.LimitReader(c, int64(headerSize)), header)
+		if e != nil {
+			return
+		}
+		//獲取 消息長度
+		size, e = template.GetMessageSize(session, header)
+		if e != nil || size < headerSize {
+			//錯誤的 消息
+			return
+		}
+		//緩衝區不夠
+		if len(buffer) < size {
+			msg = make([]byte, size)
+			copy(msg, buffer[:headerSize])
+		} else {
+			msg = buffer[:size]
+		}
+		//讀取 body
+		e = kio.ReadAll(c, msg[headerSize:])
+		if e != nil {
+			//讀取錯誤
+			return
+		}
+
+		//通知 處理消息
+		e = template.Message(c, session, msg)
+		if e != nil {
+			//斷開連接
+			return
+		}
+
 		if timer != nil {
 			timer.Stop()
-		}
-		if e != nil {
-			return
-		}
-		e = kio.WriteAll(&buffer, b[:n])
-		if e != nil {
-			return
-		}
-
-		for {
-			//讀取 header
-			if size == -1 {
-				if buffer.Len() < headerSize {
-					//等待 header
-					break
-				}
-				buf = buffer.Bytes()
-				size, e = template.GetMessageSize(session, buf[:headerSize])
-				if e != nil || size < headerSize {
-					//錯誤的 消息
-					return
-				}
-			}
-
-			//讀取body
-			if buffer.Len() < size {
-				//等待 body
-				break
-			}
-			buf = make([]byte, size)
-			e = kio.ReadAll(&buffer, buf)
-			if e != nil {
-				//讀取錯誤
-				return
-			}
-			//通知 處理消息
-			e = template.Message(c, session, buf)
-			if e != nil {
-				//斷開連接
-				return
-			}
-
-			//重置 消息 解析狀態
-			size = -1
 		}
 	}
 }

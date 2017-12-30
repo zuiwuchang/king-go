@@ -1,7 +1,6 @@
 package echo
 
 import (
-	"bytes"
 	"encoding/binary"
 	"net"
 	"time"
@@ -59,7 +58,11 @@ func NewEchoClient(client *Client) (IClient, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &clientImpl{conn, client.Template, &bytes.Buffer{}, client.RecvBuffer, -1}, nil
+	return &clientImpl{
+		conn,
+		client.Template,
+		make([]byte, client.RecvBuffer),
+	}, nil
 }
 
 //定義 默認的 IDialer
