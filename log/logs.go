@@ -13,25 +13,27 @@ type Loggers struct {
 
 //創建默認的 日誌
 func NewLoggers(out io.Writer, flags int) *Loggers {
+	c := NewCreator()
+	c.Flags = flags
 	return &Loggers{
-		Info:  NewInfo(out, flags),
-		Warn:  NewWarn(out, flags),
-		Error: NewError(out, flags),
-		Fault: NewFault(out, flags),
+		Info:  c.NewInfo(out),
+		Warn:  c.NewWarn(out),
+		Error: c.NewError(out),
+		Fault: c.NewFault(out),
 	}
 }
 
 //初始化 默認 調試 日誌
 func NewDebugLoggers() *Loggers {
-	flags := log.Ltime | log.Lshortfile
+	c := NewCreator()
 	out := kio.NewSafeWriter(os.Stdout)
 
 	return &Loggers{
-		Trace: NewTraceColor(out, flags),
-		Debug: NewDebugColor(out, flags),
-		Info:  NewInfoColor(out, flags),
-		Warn:  NewWarnColor(out, flags),
-		Error: NewErrorColor(out, flags),
-		Fault: NewFaultColor(out, flags),
+		Trace: c.NewTrace(out),
+		Debug: c.NewDebug(out),
+		Info:  c.NewInfo(out),
+		Warn:  c.NewWarn(out),
+		Error: c.NewError(out),
+		Fault: c.NewFault(out),
 	}
 }
