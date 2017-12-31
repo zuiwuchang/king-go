@@ -24,7 +24,7 @@ type Description struct {
 	headerSize int
 }
 
-func (d *Description) format() {
+func (d *Description) Format() {
 	if d.Analyze == nil {
 		if kLog.Info != nil {
 			kLog.Info.Println("use default Analyze")

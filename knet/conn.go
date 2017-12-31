@@ -17,7 +17,8 @@ type connImpl struct {
 	Size int
 }
 
-func newConnImpl(c net.Conn, desc *Description) *connImpl {
+//將一個 net.Conn 包裝爲 IConn
+func NewConn(c net.Conn, desc *Description) IConn {
 	return &connImpl{
 		c,
 		desc,

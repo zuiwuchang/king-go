@@ -18,7 +18,7 @@ func (s *Server) format() {
 		panic("Listener can't be empty")
 	}
 
-	s.Description.format()
+	s.Description.Format()
 }
 
 type listenImpl struct {
@@ -53,7 +53,7 @@ func (l *listenImpl) Accept() (IConn, error) {
 		}
 		return nil, e
 	}
-	return newConnImpl(
+	return NewConn(
 			c,
 			&(l.Server.Description),
 		),

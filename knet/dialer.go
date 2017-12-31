@@ -18,7 +18,7 @@ func (c *Client) format() {
 		c.DialFunc = net.Dial
 	}
 
-	c.Description.format()
+	c.Description.Format()
 }
 
 type dialerImpl struct {
@@ -46,7 +46,7 @@ func (d *dialerImpl) Dial(network, address string) (IConn, error) {
 	if e != nil {
 		return nil, e
 	}
-	return newConnImpl(
+	return NewConn(
 			c,
 			&(d.Client.Description),
 		),
