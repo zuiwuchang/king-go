@@ -14,13 +14,14 @@ const (
 	DefaultCommandPos = 2
 	DefaultLenPos     = 4
 
-	DefaultRecvBuffer = 1024 * 32
+	DefaultRecvBuffer = 1024 * 16
 )
 
 type Description struct {
 	Analyze    IAnalyze
 	RecvBuffer int
 
+	//緩存 包頭 大小
 	headerSize int
 }
 
