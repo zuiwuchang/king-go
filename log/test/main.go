@@ -18,8 +18,8 @@ func main() {
 	out := os.Stdout
 	c0 := &log.Creator{
 		Flags: slog.Lshortfile,
-		Color: false,
-		Tag:   "[no color] ",
+		Color: false,         //Color false 會使 NewXXX 忽略 Color
+		Tag:   "[no color] ", //NewXXX 會在 tag 後加上 Tag
 	}
 	l0 := log.Loggers{
 		Trace: c0.NewTrace(out),
@@ -46,8 +46,8 @@ func main() {
 
 	c0 = &log.Creator{
 		Flags: slog.LstdFlags,
-		Color: true,
-		Tag:   "[color] ",
+		Color: true,       //New 會忽略 Color 屬性
+		Tag:   "[color] ", //New 會忽略 Tag 屬性 而只使用 New 傳入的 tag
 	}
 	l0 = log.Loggers{
 		Trace: c0.New(out, "[tag0] "),
