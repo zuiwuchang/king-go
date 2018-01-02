@@ -63,4 +63,12 @@ func main() {
 	l0.Warn.Println("Warn")
 	l0.Error.Println("Error")
 	l0.Fault.Println("Fault")
+
+	l1 = log.NewDebugLoggers2("l2 ")
+	l1.Trace.Println("Trace")
+	l1.Debug.Println("Debug")
+	l1.Info.Println("Info")
+	l1.Warn.Println("Warn")
+	l1.Error.Println("Error")
+	l1.Fault.Println("Fault")
 }
