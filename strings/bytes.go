@@ -5,7 +5,7 @@ import (
 	"unsafe"
 )
 
-//字符串 轉 []byte
+// StringToBytes 字符串 轉 []byte
 func StringToBytes(str string) []byte {
 	//獲取 字符串 頭
 	strHeader := (*reflect.StringHeader)(unsafe.Pointer(&str))
@@ -22,7 +22,7 @@ func StringToBytes(str string) []byte {
 	return b
 }
 
-//[]byte 轉 字符串
+// BytesToString []byte 轉 字符串
 func BytesToString(b []byte) string {
 	//獲取 slice 頭
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&b))

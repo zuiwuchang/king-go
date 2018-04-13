@@ -1,7 +1,7 @@
-//提供了 標準庫 沒有的 字符串 Sub 操作
+// Package strings 提供了 標準庫 沒有的 字符串 Sub 操作
 package strings
 
-//返回 從左向右 的n個 字符
+// LeftRune 返回 從左向右 的n個 字符
 func LeftRune(runes []rune, n int) []rune {
 	if n < 1 {
 		return nil
@@ -12,6 +12,8 @@ func LeftRune(runes []rune, n int) []rune {
 	}
 	return runes[:n]
 }
+
+// Left 返回 從左向右 的n個 字符
 func Left(str string, n int) (substr string) {
 	if n < 1 {
 		return
@@ -27,7 +29,7 @@ func Left(str string, n int) (substr string) {
 	return
 }
 
-//返回 從右向左 的n個 字符
+// RightRune 返回 從右向左 的n個 字符
 func RightRune(runes []rune, n int) []rune {
 	if n < 1 {
 		return nil
@@ -40,6 +42,8 @@ func RightRune(runes []rune, n int) []rune {
 	}
 	return runes[start:size]
 }
+
+// Right 返回 從右向左 的n個 字符
 func Right(str string, n int) (substr string) {
 	if n < 1 {
 		return
@@ -55,7 +59,7 @@ func Right(str string, n int) (substr string) {
 	return
 }
 
-//使用 索引返回子串	(str,start=0,n=end)
+// SubRune 使用 索引返回子串	(str,start=0,n=end)
 func SubRune(runes []rune, args ...int) []rune {
 	start := 0
 	n := -1
@@ -89,6 +93,8 @@ func SubRune(runes []rune, args ...int) []rune {
 	}
 	return runes[start:end]
 }
+
+// Sub 使用 索引返回子串	(str,start=0,n=end)
 func Sub(str string, args ...int) (substr string) {
 	runes := []rune(str)
 

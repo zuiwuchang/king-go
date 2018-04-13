@@ -1,4 +1,3 @@
-//提供了 常用的 字符串 處理函數
 package strings
 
 import (
@@ -25,7 +24,7 @@ func isIPv4Node(str string) bool {
 	return true
 }
 
-//返回 是否是 IP v4 字符串
+// IsIPv4 返回 是否是 IP v4 字符串
 func IsIPv4(ip string) bool {
 	match, _ := regexp.Compile(`^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$`)
 	strs := match.FindStringSubmatch(ip)
