@@ -97,6 +97,33 @@ func (q *staticQueue) PopFront() (val interface{}, e error) {
 	return
 }
 
+// Back 返回 隊列 尾 如果為空 返回 nil,ErrQueueEmpty
+func (q *staticQueue) Back() (val interface{}, e error) {
+	if q.size == 0 {
+		e = ErrQueueEmpty
+		return
+	}
+
+	i := q.pos + q.size - 1
+	if i >= len(q.data) {
+		i -= len(q.data)
+	}
+	val = q.data[i]
+
+	return
+}
+
+// Front 返回 隊列 頭 如果為空 返回 nil,ErrQueueEmpty
+func (q *staticQueue) Front() (val interface{}, e error) {
+	if q.size == 0 {
+		e = ErrQueueEmpty
+		return
+	}
+	val = q.data[q.pos]
+
+	return
+}
+
 // Cap 返回 隊列 容量
 func (q *staticQueue) Cap() int {
 	return len(q.data)

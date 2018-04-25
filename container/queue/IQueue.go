@@ -25,6 +25,11 @@ type IQueue interface {
 	// PopFront 從 隊列 頭 出棧 如果為空 返回 nil,ErrQueueEmpty
 	PopFront() (val interface{}, e error)
 
+	// Back 返回 隊列 尾 如果為空 返回 nil,ErrQueueEmpty
+	Back() (val interface{}, e error)
+	// Front 返回 隊列 頭 如果為空 返回 nil,ErrQueueEmpty
+	Front() (val interface{}, e error)
+
 	// Cap 返回 隊列 容量
 	Cap() int
 	// Len 返回 隊列 大小
