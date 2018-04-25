@@ -1,18 +1,5 @@
 package queue
 
-import (
-	"errors"
-)
-
-// ErrQueueCap 初始化 容量太小
-var ErrQueueCap = errors.New("queue capacity must large than 0")
-
-// ErrQueueOverflow 容量容量已慢
-var ErrQueueOverflow = errors.New("queue capacity overflow")
-
-// ErrQueueEmpty .
-var ErrQueueEmpty = errors.New("queue empty")
-
 // staticQueue 容量 固定的 隊列
 type staticQueue struct {
 	// 隊列 數據
@@ -35,7 +22,7 @@ func NewStatic(capacity int) (q IQueue, e error) {
 	return
 }
 
-// PushBack 壓入 隊列 尾
+// PushBack 壓入 隊列 尾 失敗 通常返回 ErrQueueOverflow
 func (q *staticQueue) PushBack(val interface{}) (e error) {
 	if q.size == len(q.data) {
 		e = ErrQueueOverflow
@@ -51,7 +38,7 @@ func (q *staticQueue) PushBack(val interface{}) (e error) {
 	return
 }
 
-// PushFront 壓入 隊列 頭
+// PushFront 壓入 隊列 頭 失敗 通常返回 ErrQueueOverflow
 func (q *staticQueue) PushFront(val interface{}) (e error) {
 	if q.size == len(q.data) {
 		e = ErrQueueOverflow
@@ -67,7 +54,7 @@ func (q *staticQueue) PushFront(val interface{}) (e error) {
 	return
 }
 
-// PopBack 從 隊列 尾 出棧 如果為空 返回 nil
+// PopBack 從 隊列 尾 出棧 如果為空 返回 nil,ErrQueueEmpty
 func (q *staticQueue) PopBack() (val interface{}, e error) {
 	if q.size == 0 {
 		e = ErrQueueEmpty
@@ -89,7 +76,7 @@ func (q *staticQueue) PopBack() (val interface{}, e error) {
 	return
 }
 
-// PopFront 從 隊列 頭 出棧 如果為空 返回 nil
+// PopFront 從 隊列 頭 出棧 如果為空 返回 nil,ErrQueueEmpty
 func (q *staticQueue) PopFront() (val interface{}, e error) {
 	if q.size == 0 {
 		e = ErrQueueEmpty
