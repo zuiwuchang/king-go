@@ -19,7 +19,8 @@ go get -u github.com/zuiwuchang/king-go
 
 # 容器
  * [king-go/container/rbtree](https://github.com/zuiwuchang/king-go/tree/master/container/rbtree) 紅黑樹
-
+ * [king-go/container/queue](https://github.com/zuiwuchang/king-go/tree/master/container/queue) 隊列
+ 
 # 其它雜項
  * [king-go/timer](https://github.com/zuiwuchang/king-go/tree/master/timer) 類似 crontab 的組件
 
