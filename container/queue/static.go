@@ -66,6 +66,7 @@ func (q *staticQueue) PopBack() (val interface{}, e error) {
 		i -= len(q.data)
 	}
 	val = q.data[i]
+	q.data[i] = nil
 
 	if q.size == 1 {
 		q.size = 0
@@ -83,6 +84,7 @@ func (q *staticQueue) PopFront() (val interface{}, e error) {
 		return
 	}
 	val = q.data[q.pos]
+	q.data[q.pos] = nil
 
 	if q.size == 1 {
 		q.size = 0
