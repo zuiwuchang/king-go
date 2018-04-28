@@ -5,38 +5,35 @@ import (
 	"fmt"
 )
 
-// StringSetEmpty .
-var StringSetEmpty = "[]"
+// String .
+type String map[string]bool
 
-// Int64 .
-type Int64 map[int64]bool
-
-// NewInt64 創建 一個 Int64 的 set
-func NewInt64() Int64 {
-	return make(Int64)
+// NewString 創建 一個 string 的 set
+func NewString() String {
+	return make(String)
 }
 
 // Insert 插入節點
-func (s Int64) Insert(key int64) {
+func (s String) Insert(key string) {
 	s[key] = true
 }
 
 // Remove 移除節點
-func (s Int64) Remove(key int64) {
+func (s String) Remove(key string) {
 	delete(s, key)
 }
 
 // Ok 返回節點是否 存在
-func (s Int64) Ok(key int64) bool {
+func (s String) Ok(key string) bool {
 	_, ok := s[key]
 	return ok
 }
 
 // Len 返回節點 數量
-func (s Int64) Len() int {
+func (s String) Len() int {
 	return len(s)
 }
-func (s Int64) String() string {
+func (s String) String() string {
 	if len(s) == 0 {
 		return StringSetEmpty
 	} else if len(s) == 1 {
