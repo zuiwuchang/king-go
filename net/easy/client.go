@@ -221,3 +221,9 @@ func (c *_Client) Close() (e error) {
 	e = c.Conn.Close()
 	return
 }
+func (c *_Client) RemoteAddr() net.Addr {
+	return c.Conn.RemoteAddr()
+}
+func (c *_Client) LocalAddr() net.Addr {
+	return c.Conn.LocalAddr()
+}

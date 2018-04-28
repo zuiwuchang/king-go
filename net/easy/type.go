@@ -5,6 +5,7 @@
 package easy
 
 import (
+	"net"
 	"time"
 )
 
@@ -96,4 +97,9 @@ type IClient interface {
 
 	// 關閉 socket 連接
 	Close() (e error)
+
+	// 返回 遠端 地址
+	RemoteAddr() net.Addr
+	// 返回 本端 地址
+	LocalAddr() net.Addr
 }
