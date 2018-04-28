@@ -68,7 +68,7 @@ func WriteMessage(w io.Writer, cmd uint16, body []byte) (msg []byte, n int, e er
 }
 
 // FormatMessage 使用默認 協議 填充 消息頭
-func FormatMessage(cmd uint16, msg []byte) {
+func FormatMessage(msg []byte, cmd uint16) {
 	// flag
 	binary.LittleEndian.PutUint16(msg[DefaultFlagPos:], DefaultFlag)
 	// cmd

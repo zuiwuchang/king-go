@@ -35,6 +35,22 @@ type IAnalyze interface {
 	Analyze(header []byte) (int, error)
 }
 
+// Analyze 返回 默認的 接包器
+func Analyze() IAnalyze {
+	return defaultAnalyze{}
+}
+
+// AnalyzeFunc 創建一個 IAnalyze 接口
+func AnalyzeFunc(
+	headerSize int,
+	analyzeFunc func(header []byte,
+	) (int, error)) IAnalyze {
+	return &analyze{
+		headerSize:  headerSize,
+		analyzeFunc: analyzeFunc,
+	}
+}
+
 // IClient 定義一個 tcp 接口
 // ReadXXX 是不保證 goroutine 安全的 你不能在 一個 ReadXXX 返回前 在 其它 goroutine 中 調用 ReadXXX
 // WriteXXX 有同樣的 限制
