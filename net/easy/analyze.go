@@ -2,6 +2,7 @@ package easy
 
 import (
 	"encoding/binary"
+	"io"
 )
 
 type analyze struct {
@@ -49,4 +50,34 @@ func (defaultAnalyze) Analyze(header []byte) (int, error) {
 	}
 
 	return n, nil
+}
+
+// WriteMessage 使用 默認協議 發送一條消息
+func WriteMessage(w io.Writer, cmd uint16, body []byte) (msg []byte, n int, e error) {
+	msg = make([]byte, DefaultHeaderLen+len(body))
+	copy(msg[DefaultHeaderLen:], body)
+	// flag
+	binary.LittleEndian.PutUint16(msg[DefaultFlagPos:], DefaultFlag)
+	// cmd
+	binary.LittleEndian.PutUint16(msg[DefaultCommandPos:], cmd)
+	// size
+	binary.LittleEndian.PutUint16(msg[DefaultLenPos:], (uint16)(len(msg)))
+
+	n, e = w.Write(msg)
+	return
+}
+
+// FormatMessage 使用默認 協議 填充 消息頭
+func FormatMessage(cmd uint16, msg []byte) {
+	// flag
+	binary.LittleEndian.PutUint16(msg[DefaultFlagPos:], DefaultFlag)
+	// cmd
+	binary.LittleEndian.PutUint16(msg[DefaultCommandPos:], cmd)
+	// size
+	binary.LittleEndian.PutUint16(msg[DefaultLenPos:], (uint16)(len(msg)))
+}
+
+// GetMessageCommand 返回 默認協議的 消息 命令
+func GetMessageCommand(msg []byte) uint16 {
+	return binary.LittleEndian.Uint16(msg[DefaultCommandPos:])
 }

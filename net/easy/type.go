@@ -60,7 +60,7 @@ type IClient interface {
 
 	// 向 tcp 流 寫入 數據流
 	// 注意 如果失敗 n 可能是 [0,len(msg)] 意味着可能寫入了 部分數據
-	Write(b []byte) (n int64, e error)
+	Write(b []byte) (n int, e error)
 	// 向 tcp 流 寫入 數據流
 	// 注意 如果失敗 n 可能是 [0,len(msg)] 意味着可能寫入了 部分數據
 	//
@@ -68,7 +68,7 @@ type IClient interface {
 	// 此時 你可以 調用 Close 以便 WaitWrite 能夠 立刻 返回  但着意味着 此後 將 不能在進行任何 讀寫操作
 	//
 	// 注意 如果 WriteTimeout 返回 ErrorWriteTimeout n 的值爲0 但 實際寫入到 tcp send 緩存流中 的數據大小 應該由 WaitWrite 返回
-	WriteTimeout(b []byte, timeout time.Duration) (n int64, e error)
+	WriteTimeout(b []byte, timeout time.Duration) (n int, e error)
 
 	// 通常 只有在 WriteTimeout 失敗後 必須手動 調用 此函數 以便 write 的 goroutine能夠 正確退出
 	// 因爲 受限與socket send 函數 一旦被調用在 函數 成功或失敗 前都 無法使此函數 返回 或 取消操縱
@@ -76,7 +76,7 @@ type IClient interface {
 	// 不過 WriteTimeout 依然有意義 你可以選擇 直接 在此 調用 Close 後調用 WaitWrite 以便立刻 關閉這個 超時的 socket
 	//
 	// WaitWrite 會返回 實際寫入到 tcp send 緩存流中 的數據大小 和 錯誤信息
-	WaitWrite() (n int64, e error)
+	WaitWrite() (n int, e error)
 
 	// 關閉 socket 連接
 	Close() (e error)
