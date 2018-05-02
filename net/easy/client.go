@@ -75,7 +75,7 @@ func (c *_Client) read() (e error) {
 }
 func (c *_Client) readMessage(size int) (msg []byte) {
 	msg = make([]byte, size)
-	copy(msg, c.Buffer[c.BufferPos:size])
+	copy(msg, c.Buffer[c.BufferPos:c.BufferPos+size])
 	c.BufferPos += size
 	c.BufferSize -= size
 
