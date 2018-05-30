@@ -103,3 +103,10 @@ type IClient interface {
 	// 返回 本端 地址
 	LocalAddr() net.Addr
 }
+
+// IListener 在 net.Listener 之上 提供了 一個 Closed 返回 Listener 是否已經關閉
+type IListener interface {
+	net.Listener
+	// 返回 Listener 是否已經 關閉
+	Closed() bool
+}
