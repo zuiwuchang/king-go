@@ -46,11 +46,11 @@ func (c _CommanderSignal) Close() {
 	return
 }
 
-// Run 運行 commnad<-ch Execute(e) 直到 Execute 返回 錯誤 或 close(ch)
+// Run 運行 commnad<-ch Done(e) 直到 Done 返回 錯誤 或 close(ch)
 // 如果 Run 返回 錯誤 於是你調用了 Close 此時應該 繼續調用 Run 或 RunNull 以便 在使用 帶緩存的 chan 時 緩存 goroutine 能夠正常退出
 func (c _CommanderSignal) Run() (e error) {
 	for command := range c.signal {
-		e = c.commnader.Execute(command)
+		e = c.commnader.Done(command)
 		if e != nil {
 			break
 		}
@@ -58,7 +58,7 @@ func (c _CommanderSignal) Run() (e error) {
 	return
 }
 
-// RunNull 只執行 commnad<-ch 而不執行 Execute(e)
+// RunNull 只執行 commnad<-ch 而不執行 Done(e)
 // 通常只在 使用了 帶緩存的 chan 時 Close 後 讓 chan 的 goroutine 退出
 func (c _CommanderSignal) RunNull() {
 	for range c.signal {

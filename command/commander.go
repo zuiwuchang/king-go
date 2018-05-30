@@ -61,9 +61,9 @@ func (c _Commander) String() string {
 	return fmt.Sprint(c.keys)
 }
 
-// Execute 執行一個 命令
+// Done 執行一個 命令
 // 如果 command 未註冊 返回 errCommandUnknow
-func (c _Commander) Execute(command interface{}) (e error) {
+func (c _Commander) Done(command interface{}) (e error) {
 	commandType := reflect.TypeOf(command)
 	if f, _ := c.keys[commandType]; f == nil {
 		e = NewErrCommandUnknowType(commandType)

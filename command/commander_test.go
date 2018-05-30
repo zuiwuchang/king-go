@@ -45,33 +45,33 @@ func TestCommander(t *testing.T) {
 	hander := &testContext{}
 	RegisterCommander(c, hander, "Done")
 
-	if e = c.Execute(int8(8)); e == nil {
-		t.Fatal("not Register int8 but execute")
+	if e = c.Done(int8(8)); e == nil {
+		t.Fatal("not Register int8 but done")
 	} else if !IsUnknow(e) {
 		t.Fatal(e)
 	}
-	if e = c.Execute(int64(64)); e == nil {
-		t.Fatal("not Register int64 but execute")
+	if e = c.Done(int64(64)); e == nil {
+		t.Fatal("not Register int64 but done")
 	} else if !IsUnknow(e) {
 		t.Fatal(e)
 	}
 
-	if e = c.Execute(1); e != nil {
+	if e = c.Done(1); e != nil {
 		t.Fatal(e)
 	}
 	if hander.val != 1 {
 		t.Fatal("bad ptr hander")
 	}
-	if e = c.Execute(testErrorVal); e.Error() != fmt.Sprintf("%v", testErrorVal) {
+	if e = c.Done(testErrorVal); e.Error() != fmt.Sprintf("%v", testErrorVal) {
 		t.Fatal("testErrorVal", e)
 	}
 
 	v64 := int64(testErrorVal)
-	if e = c.Execute(&v64); e.Error() != fmt.Sprintf("%v", testErrorVal) {
+	if e = c.Done(&v64); e.Error() != fmt.Sprintf("%v", testErrorVal) {
 		t.Fatal("testErrorVal", e)
 	}
 	v64 = 32
-	if e = c.Execute(&v64); e != nil {
+	if e = c.Done(&v64); e != nil {
 		t.Fatal(e)
 	}
 	if hander.val64 != 32 {
