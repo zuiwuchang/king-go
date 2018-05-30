@@ -1,18 +1,63 @@
 package command
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 )
 
 type _Commander struct {
 	keys map[reflect.Type]CommanderHander
 }
 
-// NewCommander 創建一個 ICommander
-func NewCommander() ICommander {
+// New 創建一個 ICommander
+func New() ICommander {
 	return _Commander{
 		keys: make(map[reflect.Type]CommanderHander),
 	}
+}
+
+// RegisterCommander 自動將 handerST 中的 處理函數 註冊到 commander
+//
+// 處理函數 必須是名稱以 prefix 開始 的導出函數 func (xxx)[Prefix]XXX(commandType)(error)
+//
+// handerST 必須是一個 struct 或 *struct 否則將 panics
+func RegisterCommander(commander ICommander, handerST interface{}, prefix string) {
+	t := reflect.TypeOf(handerST)
+
+	// 獲取 所有 導出 函數
+	for i := 0; i < t.NumMethod(); i++ {
+		m := t.Method(i)
+		mt := m.Type
+
+		// 驗證 函數簽名
+		if mt.NumIn() != 2 ||
+			mt.NumOut() != 1 ||
+			mt.Out(0) != errInterface ||
+			!strings.HasPrefix(m.Name, prefix) {
+			continue
+		}
+
+		registerCommander(commander, handerST, m)
+	}
+}
+func registerCommander(commander ICommander, handerST interface{}, m reflect.Method) {
+	commander.RegisterType(m.Type.In(1), func(command interface{}) (e error) {
+		rs := m.Func.Call(
+			[]reflect.Value{
+				reflect.ValueOf(handerST),
+				reflect.ValueOf(command),
+			},
+		)[0].Interface()
+		if rs != nil {
+			e = rs.(error)
+		}
+		return
+	})
+}
+
+func (c _Commander) String() string {
+	return fmt.Sprint(c.keys)
 }
 
 // Execute 執行一個 命令
@@ -58,4 +103,9 @@ func (c _Commander) Register(command interface{}, f CommanderHander) {
 	} else {
 		c.keys[commandType] = f
 	}
+}
+
+// NumHander 返回 Hander 數量
+func (c _Commander) NumHander() int {
+	return len(c.keys)
 }

@@ -9,12 +9,17 @@ type _CommanderSignal struct {
 	commnader ICommander
 }
 
-// NewCommanderSignal .
-func NewCommanderSignal(signal chan interface{}, commnader ICommander) ICommanderSignal {
+// NewSignal .
+func NewSignal(signal chan interface{}, commnader ICommander) ICommanderSignal {
 	return _CommanderSignal{
 		signal:    signal,
 		commnader: commnader,
 	}
+}
+
+// Commander 返回 綁定的 ICommander
+func (c _CommanderSignal) Commander() ICommander {
+	return c.commnader
 }
 
 // Done 如果 command 未註冊 返回 errCommandUnknow 否則執行 ch <- command

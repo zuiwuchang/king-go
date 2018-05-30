@@ -4,6 +4,8 @@ import (
 	"reflect"
 )
 
+var errInterface = reflect.TypeOf((*error)(nil)).Elem()
+
 // CommanderHander 命令處理 函數
 type CommanderHander func(command interface{}) (e error)
 
@@ -24,10 +26,15 @@ type ICommander interface {
 
 	// Register RegisterType(reflect.TypeOf(command),f) 的語法糖
 	Register(command interface{}, f CommanderHander)
+
+	// NumHander 返回 Hander 數量
+	NumHander() int
 }
 
 // ICommanderSignal 一個 帶有 ICommander 的 chan
 type ICommanderSignal interface {
+	// Commander 返回 綁定的 ICommander
+	Commander() ICommander
 	// Done 如果 command 未註冊 返回 errCommandUnknow 否則執行 ch <- command
 	Done(command interface{}) (e error)
 
