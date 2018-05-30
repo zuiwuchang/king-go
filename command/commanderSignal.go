@@ -11,6 +11,12 @@ type _CommanderSignal struct {
 
 // NewSignal .
 func NewSignal(signal chan interface{}, commnader ICommander) ICommanderSignal {
+	if signal == nil {
+		signal = make(chan interface{})
+	}
+	if commnader == nil {
+		commnader = New()
+	}
 	return _CommanderSignal{
 		signal:    signal,
 		commnader: commnader,
