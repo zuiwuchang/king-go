@@ -24,6 +24,7 @@ func New() ICommander {
 // handerST 必須是一個 struct 或 *struct 否則將 panics
 func RegisterCommander(commander ICommander, handerST interface{}, prefix string) {
 	t := reflect.TypeOf(handerST)
+	prefix = strings.TrimSpace(prefix)
 
 	// 獲取 所有 導出 函數
 	for i := 0; i < t.NumMethod(); i++ {
