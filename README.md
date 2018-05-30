@@ -9,6 +9,9 @@ go get -u github.com/zuiwuchang/king-go
  2. [king-go/net/echo](https://github.com/zuiwuchang/king-go/tree/master/net/echo) tcp 服務器 自動解包
  3. [king-go/net/pool](https://github.com/zuiwuchang/king-go/tree/master/net/pool) tcp 連接池
 
+# 反射
+ * [king-go/command](https://github.com/zuiwuchang/king-go/tree/master/command) 自動路由命令參數到 指定處理函數
+
 # 緩存
  * [king-go/cache/lru](https://github.com/zuiwuchang/king-go/tree/master/cache/lru) 使用lru算法實現的緩存
  * [king-go/cache/lru2](https://github.com/zuiwuchang/king-go/tree/master/cache/lru2) 類似lru庫 不過爲每個緩存項目 添加了一個超時過期 時間
