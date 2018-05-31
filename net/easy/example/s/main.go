@@ -38,7 +38,7 @@ func read(c easy.IClient) {
 	var e error
 	var n int
 	for {
-		msg, e = c.ReadTimeout(timeout)
+		msg, e = c.ReadTimeout(timeout, nil)
 		if e != nil {
 			break
 		}

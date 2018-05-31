@@ -72,7 +72,7 @@ func request(cs []easy.IClient) {
 				return
 			}
 
-			msg, e = c.ReadTimeout(time.Second * 10)
+			msg, e = c.ReadTimeout(time.Second*10, nil)
 		}(i)
 	}
 	ok := 0

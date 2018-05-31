@@ -58,13 +58,13 @@ func AnalyzeFunc(
 // tcp 的 讀寫流是 分開了 所以 你可以在 一個 goroutine ReadXXX 返回前 在另外一個 goroutine 中 調用 WriteXXX 反之亦然
 type IClient interface {
 	// 從 tcp 流中 讀取一個 完整的 消息
-	Read() (msg []byte, e error)
+	Read(msgReuse []byte) (msg []byte, e error)
 	// 從 tcp 流中 讀取一個 完整的 消息
 	// 注意 如果 ReadTimeout 返回 ErrorReadTimeout 你應該 調用 WaitRead 等待 read 以便 read 的 goroutine 能夠正常退出
 	// 此時 你可以 調用 Close 以便 WaitRead 能夠 立刻 返回  但着意味着 此後 將 不能在進行任何 讀寫操作
 	//
 	// 注意 如果 ReadTimeout 返回 ErrorReadTimeout n 的值爲0
-	ReadTimeout(timeout time.Duration) (msg []byte, e error)
+	ReadTimeout(timeout time.Duration, msgReuse []byte) (msg []byte, e error)
 
 	// 通常 只有在 ReadTimeout 失敗後 必須手動 調用 此函數 以便 read 的 goroutine能夠 正確退出
 	// 因爲 受限與socket recv 函數 一旦被調用在 函數 成功或失敗 前都 無法使此函數 返回 或 取消操縱

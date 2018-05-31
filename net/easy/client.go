@@ -73,8 +73,12 @@ func (c *_Client) read() (e error) {
 	}
 	return
 }
-func (c *_Client) readMessage(size int) (msg []byte) {
-	msg = make([]byte, size)
+func (c *_Client) readMessage(size int, msgReuse []byte) (msg []byte) {
+	if len(msgReuse) >= size {
+		msg = msgReuse[:size]
+	} else {
+		msg = make([]byte, size)
+	}
 	copy(msg, c.Buffer[c.BufferPos:c.BufferPos+size])
 	c.BufferPos += size
 	c.BufferSize -= size
@@ -84,7 +88,7 @@ func (c *_Client) readMessage(size int) (msg []byte) {
 	}
 	return
 }
-func (c *_Client) Read() (msg []byte, e error) {
+func (c *_Client) Read(msgReuse []byte) (msg []byte, e error) {
 	analyze := c.Analyze
 	headerSize := analyze.Header()
 	size := -1
@@ -123,13 +127,13 @@ func (c *_Client) Read() (msg []byte, e error) {
 		}
 
 		// 讀出消息
-		msg = c.readMessage(size)
+		msg = c.readMessage(size, msgReuse)
 		break
 	}
 	return
 }
 
-func (c *_Client) ReadTimeout(timeout time.Duration) (msg []byte, e error) {
+func (c *_Client) ReadTimeout(timeout time.Duration, msgReuse []byte) (msg []byte, e error) {
 	// 啟動 定時器
 	if c.ReadTimer == nil {
 		c.ReadTimer = time.NewTimer(timeout)
@@ -137,7 +141,7 @@ func (c *_Client) ReadTimeout(timeout time.Duration) (msg []byte, e error) {
 		c.ReadTimer.Reset(timeout)
 	}
 	// 異步 寫入
-	go c.asyncReadF()
+	go c.asyncReadF(msgReuse)
 
 	// 等待執行結果
 	select {
@@ -153,8 +157,8 @@ func (c *_Client) ReadTimeout(timeout time.Duration) (msg []byte, e error) {
 	}
 	return
 }
-func (c *_Client) asyncReadF() {
-	msg, e := c.Read()
+func (c *_Client) asyncReadF(msgReuse []byte) {
+	msg, e := c.Read(msgReuse)
 	c.ReadSignal <- rSignal{
 		Message: msg,
 		Error:   e,
