@@ -1,3 +1,6 @@
+# Discard
+此 包已經被 廢棄 請不要再使用
+
 # echo
 echo 是一個類似 basic 的 tcp 服務器 框架
 
