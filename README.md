@@ -5,9 +5,7 @@
 go get -u github.com/zuiwuchang/king-go
 
 # tcp 相關
- 1. [king-go/net/basic](https://github.com/zuiwuchang/king-go/tree/master/net/basic) tcp 服務器
- 2. [king-go/net/echo](https://github.com/zuiwuchang/king-go/tree/master/net/echo) tcp 服務器 自動解包
- 3. [king-go/net/pool](https://github.com/zuiwuchang/king-go/tree/master/net/pool) tcp 連接池
+ *. [king-go/net/easy](https://github.com/zuiwuchang/king-go/tree/master/net/easy) tcp 相關
 
 # 反射
  * [king-go/command](https://github.com/zuiwuchang/king-go/tree/master/command) 自動路由命令參數到 指定處理函數
