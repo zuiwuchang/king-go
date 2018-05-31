@@ -5,7 +5,7 @@
 go get -u github.com/zuiwuchang/king-go
 
 # tcp 相關
- *. [king-go/net/easy](https://github.com/zuiwuchang/king-go/tree/master/net/easy) tcp 相關
+ * [king-go/net/easy](https://github.com/zuiwuchang/king-go/tree/master/net/easy) tcp 相關
 
 # 反射
  * [king-go/command](https://github.com/zuiwuchang/king-go/tree/master/command) 自動路由命令參數到 指定處理函數
