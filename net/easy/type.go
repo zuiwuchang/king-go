@@ -58,6 +58,7 @@ func AnalyzeFunc(
 // tcp 的 讀寫流是 分開了 所以 你可以在 一個 goroutine ReadXXX 返回前 在另外一個 goroutine 中 調用 WriteXXX 反之亦然
 type IClient interface {
 	// 從 tcp 流中 讀取一個 完整的 消息
+	// msgReuse 是一個 可選的 消息接收緩存 如果 msgReuse 足夠長 msg 則直接從 msgReuse[:msgSize]中 切片 否則 申請新內存 make([]byte,msgSize)
 	Read(msgReuse []byte) (msg []byte, e error)
 	// 從 tcp 流中 讀取一個 完整的 消息
 	// 注意 如果 ReadTimeout 返回 ErrorReadTimeout 你應該 調用 WaitRead 等待 read 以便 read 的 goroutine 能夠正常退出

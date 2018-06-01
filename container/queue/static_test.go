@@ -9,7 +9,7 @@ func TestStatic(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	q := iq.(*staticQueue)
+	q := iq.(*_StaticQueue)
 	if q.Len() != 0 {
 		t.Fatal("bad len")
 	}
