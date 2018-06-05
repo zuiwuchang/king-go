@@ -1,3 +1,8 @@
+# Discard
+因為 microsoft的原因 此項目 已經被轉移到 [gitlab.com/king011/king-go](https://gitlab.com/king011/king-go)
+
+github上的 版本將不在進行 任何維護
+
 # king-go
 孤實現的一些 go 組件
 
